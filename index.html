@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#120f1f" />
+  <meta name="description" content="RodinaRPS: Rock Paper Scissors. Challenge the computer in timed or round-based matches." />
+  <title>RodinaRPS · Rock Paper Scissors</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/src/styles/main.css" />
+  <script type="module" src="/src/main.ts"></script>
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#home" aria-label="RodinaRPS home">
+        <span class="brand-mark" data-icon="rock" aria-hidden="true"></span>
+        <span class="brand-name">RodinaRPS<span class="brand-dot">.</span></span>
+      </a>
+      <div class="topbar-meta">
+        <span class="live-dot"></span>
+        <span>PLAYER VS CPU</span>
+      </div>
+    </header>
+
+    <section class="hero-copy" aria-labelledby="page-title">
+      <p class="eyebrow">THE CLASSIC BATTLE</p>
+      <h1 id="page-title">Rock <span>Paper</span> Scissors</h1>
+      <p class="hero-subtitle">Read the move. Make your choice. Take the win.</p>
+    </section>
+
+    <section class="game-card" aria-label="Rock Paper Scissors game">
+      <div id="result-banner" class="result-banner" data-tone="neutral" role="status" aria-live="polite">
+        <span class="result-spark" data-icon="sparkle" aria-hidden="true"></span>
+        <span id="result-text">Welcome! Choose a game mode to get started.</span>
+        <span class="result-spark" data-icon="sparkle" aria-hidden="true"></span>
+      </div>
+
+      <section id="home-screen" class="home-screen">
+        <div class="scoreboard preview-scoreboard" aria-label="Score">
+          <div class="score-side">
+            <span class="score-caption">YOU</span>
+            <strong id="home-player-score">0</strong>
+          </div>
+          <span class="score-divider">:</span>
+          <div class="score-side">
+            <span class="score-caption">CPU</span>
+            <strong id="home-cpu-score">0</strong>
+          </div>
+        </div>
+
+        <div class="mode-heading">
+          <span class="mode-heading-line"></span>
+          <span>CHOOSE YOUR GAME MODE</span>
+          <span class="mode-heading-line"></span>
+        </div>
+
+        <div class="mode-grid">
+          <button class="mode-card mode-time" id="choose-time" type="button">
+            <span class="mode-icon" data-icon="clock" aria-hidden="true"></span>
+            <span class="mode-card-title">Time Mode</span>
+            <span class="mode-card-description">Play until the clock runs out.</span>
+            <span class="mode-card-action">SET YOUR TIME <span data-icon="arrow-up-right" aria-hidden="true"></span></span>
+          </button>
+          <button class="mode-card mode-rounds" id="choose-rounds" type="button">
+            <span class="mode-icon" data-icon="rows-3" aria-hidden="true"></span>
+            <span class="mode-card-title">Rounds Mode</span>
+            <span class="mode-card-description">Play a fixed number of rounds.</span>
+            <span class="mode-card-action">SET YOUR ROUNDS <span data-icon="arrow-up-right" aria-hidden="true"></span></span>
+          </button>
+        </div>
+        <p class="home-footnote"><span data-icon="sparkle" aria-hidden="true"></span> The computer learns from your previous moves.</p>
+      </section>
+
+      <section id="game-screen" class="game-screen" hidden>
+        <div class="scoreboard live-scoreboard" aria-label="Current score">
+          <div class="score-side player-score-side">
+            <span class="score-caption">YOU</span>
+            <strong id="player-score">0</strong>
+          </div>
+          <span class="score-divider">:</span>
+          <div class="score-side cpu-score-side">
+            <span class="score-caption">CPU</span>
+            <strong id="cpu-score">0</strong>
+          </div>
+        </div>
+
+        <div class="arena">
+          <div class="fighter fighter-player">
+            <span class="fighter-label">YOU</span>
+            <div class="choice-display" id="player-choice-display" aria-label="Your choice">?</div>
+            <span class="fighter-name">PLAYER</span>
+          </div>
+          <div class="versus" aria-hidden="true"><span>VS</span></div>
+          <div class="fighter fighter-cpu">
+            <span class="fighter-label">CPU</span>
+            <div class="choice-display" id="cpu-choice-display" aria-label="Computer choice">?</div>
+            <span class="fighter-name">COMPUTER</span>
+          </div>
+        </div>
+
+        <div class="choose-heading">
+          <span class="choose-line"></span>
+          <span>MAKE YOUR MOVE</span>
+          <span class="choose-line"></span>
+        </div>
+        <div class="choice-buttons" aria-label="Choose rock, paper, or scissors">
+          <button class="choice-button rock-button" data-choice="rock" type="button" aria-label="Choose rock">
+            <span class="choice-emoji" data-icon="rock" aria-hidden="true"></span>
+            <span class="choice-name">ROCK</span>
+          </button>
+          <button class="choice-button paper-button" data-choice="paper" type="button" aria-label="Choose paper">
+            <span class="choice-emoji" data-icon="paper" aria-hidden="true"></span>
+            <span class="choice-name">PAPER</span>
+          </button>
+          <button class="choice-button scissors-button" data-choice="scissors" type="button" aria-label="Choose scissors">
+            <span class="choice-emoji" data-icon="scissors" aria-hidden="true"></span>
+            <span class="choice-name">SCISSORS</span>
+          </button>
+        </div>
+
+        <div class="progress-section">
+          <div class="progress-meta">
+            <span id="progress-label">TIME PROGRESS</span>
+            <strong id="progress-value">10m 00s</strong>
+          </div>
+          <div class="progress-track" role="progressbar" aria-label="Game progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress-track">
+            <span class="progress-fill" id="progress-fill"></span>
+          </div>
+        </div>
+
+        <div class="control-bar">
+          <button class="control-button pause-control" id="pause-button" type="button"><span data-icon="pause" aria-hidden="true"></span> Pause</button>
+          <button class="control-button restart-control" id="restart-button" type="button"><span data-icon="rotate-cw" aria-hidden="true"></span> Restart</button>
+          <button class="control-button home-control" id="home-button" type="button"><span data-icon="house" aria-hidden="true"></span> Home</button>
+          <button class="control-button quit-control" id="quit-button" type="button"><span data-icon="x" aria-hidden="true"></span> Quit</button>
+        </div>
+      </section>
+    </section>
+
+    <footer class="footer-note">BUILT FOR THE LOVE OF THE GAME <span data-icon="sparkle" aria-hidden="true"></span></footer>
+  </main>
+
+  <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="dialog-title">
+    <form method="dialog" id="settings-form">
+      <div class="dialog-topline"><span class="dialog-icon" id="dialog-icon" data-icon="clock" aria-hidden="true"></span><span class="dialog-kicker">MATCH SETTINGS</span></div>
+      <h2 id="dialog-title">Time Mode</h2>
+      <p class="dialog-subtitle" id="dialog-subtitle">How long do you want to play?</p>
+      <div class="preset-grid" id="preset-grid"></div>
+      <div class="custom-setting">
+        <label for="custom-value">CUSTOM VALUE</label>
+        <div class="custom-input-wrap">
+          <button class="stepper-button" id="minus-value" type="button" aria-label="Decrease value">−</button>
+          <input id="custom-value" name="custom-value" type="number" min="1" max="60" value="10" inputmode="numeric" />
+          <button class="stepper-button" id="plus-value" type="button" aria-label="Increase value">+</button>
+          <span class="custom-unit" id="custom-unit">min</span>
+        </div>
+        <span class="input-hint" id="input-hint">Choose between 1 and 60 minutes.</span>
+      </div>
+      <div class="dialog-actions">
+        <button class="dialog-button cancel-button" id="cancel-settings" type="button">Cancel</button>
+        <button class="dialog-button start-button" id="start-game" type="submit">Start Game <span data-icon="arrow-right" aria-hidden="true"></span></button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
