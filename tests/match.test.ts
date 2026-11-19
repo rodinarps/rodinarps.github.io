@@ -82,3 +82,18 @@ describe("Match validation", () => {
     expect(match.verdict).toBe("win");
   });
 });
+
+describe("Match history of rounds", () => {
+  it("remembers every round and when it started", () => {
+    const startedAt = new Date("2026-11-18T12:00:00.000Z");
+    const match = new Match("rounds", 3, startedAt);
+    match.playRound("paper", alwaysZero);
+    match.playRound("scissors", alwaysZero);
+
+    expect(match.startedAt).toBe(startedAt);
+    expect(match.rounds).toEqual([
+      { playerChoice: "paper", cpuChoice: "rock", result: "win" },
+      { playerChoice: "scissors", cpuChoice: "rock", result: "lose" },
+    ]);
+  });
+});

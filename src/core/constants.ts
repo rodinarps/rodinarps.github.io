@@ -51,3 +51,7 @@ export const CLOCK_TICK_MS = 1_000;
 export const RESULT_DISPLAY_DURATION_MS = 5_000;
 export const TOAST_DURATION_MS = 3_000;
 export const LOW_TIME_THRESHOLD_SECONDS = 30;
+
+// History
+/** Backup files bigger than this are refused before they are even read. */
+export const MAX_IMPORT_BYTES = 5_000_000;

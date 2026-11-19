@@ -24,6 +24,11 @@ const ICON_NAMES = [
   "house",
   "x",
   "sparkle",
+  "history",
+  "download",
+  "upload",
+  "trash-2",
+  "arrow-left",
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];

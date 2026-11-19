@@ -22,6 +22,13 @@ export function counterTo(choice: Choice): Choice {
   return COUNTER[choice];
 }
 
+/** Who is ahead, from the player's point of view. */
+export function verdictFromScores(player: number, cpu: number): RoundResult {
+  if (player > cpu) return "win";
+  if (player < cpu) return "lose";
+  return "tie";
+}
+
 export function determineRoundResult(player: Choice, cpu: Choice): RoundResult {
   if (player === cpu) return "tie";
   return BEATS[player] === cpu ? "win" : "lose";

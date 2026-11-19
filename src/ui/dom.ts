@@ -9,3 +9,15 @@ export function requireElements<T extends HTMLElement = HTMLElement>(selector: s
   if (elements.length === 0) throw new Error(`Required page elements not found: ${selector}`);
   return elements;
 }
+
+/** Builds an element in one line. Text is set with `textContent`, so it can never be read as HTML. */
+export function make<K extends keyof HTMLElementTagNameMap>(
+  tag: K,
+  className?: string,
+  text?: string,
+): HTMLElementTagNameMap[K] {
+  const element = document.createElement(tag);
+  if (className) element.className = className;
+  if (text !== undefined) element.textContent = text;
+  return element;
+}

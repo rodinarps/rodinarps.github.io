@@ -1,6 +1,6 @@
 import { SECONDS_PER_MINUTE } from "./constants";
 import { chooseOpponentMove, type RandomSource } from "./opponent";
-import { determineRoundResult } from "./rules";
+import { determineRoundResult, verdictFromScores } from "./rules";
 import type { Choice, MatchStatus, Mode, RoundOutcome, RoundResult } from "./types";
 
 /**
@@ -17,12 +17,13 @@ export class Match {
   private player = 0;
   private cpu = 0;
   private left: number;
-  private readonly playerHistory: Choice[] = [];
+  private readonly outcomes: RoundOutcome[] = [];
 
   constructor(
     readonly mode: Mode,
     /** Minutes (time mode) or number of rounds (rounds mode). */
     readonly setting: number,
+    readonly startedAt: Date = new Date(),
   ) {
     if (!Number.isInteger(setting) || setting < 1) {
       throw new RangeError(`Match setting must be a positive integer, got ${setting}`);
@@ -53,27 +54,32 @@ export class Match {
     return ((this.total - this.left) / this.total) * 100;
   }
 
+  /** Every round played so far, in order. */
+  get rounds(): readonly RoundOutcome[] {
+    return this.outcomes;
+  }
+
   /** Who is ahead right now, from the player's point of view. */
   get verdict(): RoundResult {
-    if (this.player > this.cpu) return "win";
-    if (this.player < this.cpu) return "lose";
-    return "tie";
+    return verdictFromScores(this.player, this.cpu);
   }
 
   /** Plays one round. Returns `null` when the match is paused or finished. */
   playRound(playerChoice: Choice, random: RandomSource = Math.random): RoundOutcome | null {
     if (this.currentStatus !== "playing") return null;
 
-    const cpuChoice = chooseOpponentMove(this.playerHistory, random);
-    this.playerHistory.push(playerChoice);
-
+    const playerHistory = this.outcomes.map((outcome) => outcome.playerChoice);
+    const cpuChoice = chooseOpponentMove(playerHistory, random);
     const result = determineRoundResult(playerChoice, cpuChoice);
+    const outcome: RoundOutcome = { playerChoice, cpuChoice, result };
+    this.outcomes.push(outcome);
+
     if (result === "win") this.player += 1;
     if (result === "lose") this.cpu += 1;
 
     if (this.mode === "rounds") this.consumeOne();
 
-    return { playerChoice, cpuChoice, result };
+    return outcome;
   }
 
   /** Advances the clock by one second. Only counts in time mode while playing. */

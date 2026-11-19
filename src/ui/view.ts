@@ -17,6 +17,8 @@ const COLOR = {
   calm: "var(--purple)",
 } as const;
 
+type Screen = "home" | "game" | "history";
+
 const MODE_BUTTON_SELECTOR: Record<Mode, string> = {
   time: "#choose-time",
   rounds: "#choose-rounds",
@@ -35,6 +37,7 @@ export interface ViewHandlers {
 export class GameView {
   private readonly homeScreen = requireElement("#home-screen");
   private readonly gameScreen = requireElement("#game-screen");
+  private readonly historyScreen = requireElement("#history-screen");
   private readonly resultBanner = requireElement("#result-banner");
   private readonly resultText = requireElement("#result-text");
 
@@ -79,13 +82,15 @@ export class GameView {
   // Screens
 
   showHome(): void {
-    this.homeScreen.hidden = false;
-    this.gameScreen.hidden = true;
+    this.show("home");
   }
 
   showGame(): void {
-    this.homeScreen.hidden = true;
-    this.gameScreen.hidden = false;
+    this.show("game");
+  }
+
+  showHistory(): void {
+    this.show("history");
   }
 
   // Banner and toast
@@ -161,6 +166,12 @@ export class GameView {
   }
 
   // Helpers
+
+  private show(screen: Screen): void {
+    this.homeScreen.hidden = screen !== "home";
+    this.gameScreen.hidden = screen !== "game";
+    this.historyScreen.hidden = screen !== "history";
+  }
 
   private animateChoice(element: HTMLElement, choice: Choice): void {
     this.setChoiceDisplay(element, createIcon(choice), choice);

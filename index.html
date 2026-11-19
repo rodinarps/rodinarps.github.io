@@ -72,6 +72,9 @@
             <span class="mode-card-action">SET YOUR ROUNDS <span data-icon="arrow-up-right" aria-hidden="true"></span></span>
           </button>
         </div>
+        <div class="home-links">
+          <button class="history-link" id="open-history" type="button"><span data-icon="history" aria-hidden="true"></span> Match history <span class="history-count" id="history-count">0</span></button>
+        </div>
         <p class="home-footnote"><span data-icon="sparkle" aria-hidden="true"></span> The computer learns from your previous moves.</p>
       </section>
 
@@ -138,6 +141,37 @@
           <button class="control-button home-control" id="home-button" type="button"><span data-icon="house" aria-hidden="true"></span> Home</button>
           <button class="control-button quit-control" id="quit-button" type="button"><span data-icon="x" aria-hidden="true"></span> Quit</button>
         </div>
+      </section>
+
+      <section id="history-screen" class="history-screen" hidden>
+        <div class="history-header">
+          <button class="control-button back-control" id="history-back" type="button"><span data-icon="arrow-left" aria-hidden="true"></span> Back</button>
+          <h2 class="history-title">Match history</h2>
+        </div>
+
+        <div class="stat-grid" aria-label="Match totals">
+          <div class="stat-card"><strong class="stat-value" id="stat-matches">0</strong><span class="stat-label">MATCHES</span></div>
+          <div class="stat-card" data-tone="win"><strong class="stat-value" id="stat-wins">0</strong><span class="stat-label">WINS</span></div>
+          <div class="stat-card" data-tone="lose"><strong class="stat-value" id="stat-losses">0</strong><span class="stat-label">LOSSES</span></div>
+          <div class="stat-card" data-tone="rate"><strong class="stat-value" id="stat-winrate">—</strong><span class="stat-label">WIN RATE</span></div>
+        </div>
+        <p class="history-summary" id="history-summary"></p>
+
+        <h3 class="history-subheading">YOUR MOVES</h3>
+        <ul class="move-list" id="move-list"></ul>
+
+        <h3 class="history-subheading">RECENT MATCHES</h3>
+        <p class="history-empty" id="history-empty"></p>
+        <ul class="match-list" id="match-list" hidden></ul>
+        <p class="history-note" id="history-list-note" hidden></p>
+
+        <div class="history-actions">
+          <button class="control-button export-control" id="export-history" type="button"><span data-icon="download" aria-hidden="true"></span> Export backup</button>
+          <button class="control-button import-control" id="import-history" type="button"><span data-icon="upload" aria-hidden="true"></span> Import backup</button>
+          <button class="control-button clear-control" id="clear-history" type="button"><span data-icon="trash-2" aria-hidden="true"></span> Clear history</button>
+          <input id="import-input" type="file" accept="application/json,.json" hidden />
+        </div>
+        <p class="history-note" id="history-note"></p>
       </section>
     </section>
 
