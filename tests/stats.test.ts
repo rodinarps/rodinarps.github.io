@@ -4,13 +4,14 @@ import type { MatchRecord } from "../src/core/types";
 
 function record(overrides: Partial<MatchRecord>): MatchRecord {
   return {
-    version: 1,
+    version: 2,
     id: Math.random().toString(),
     startedAt: "2026-11-18T12:00:00.000Z",
     mode: "rounds",
     setting: 2,
+    difficulty: "medium",
     playerScore: 0,
-    cpuScore: 0,
+    aiScore: 0,
     rounds: "",
     ...overrides,
   };
@@ -27,10 +28,10 @@ describe("computeStats", () => {
 
   it("counts matches by result", () => {
     const stats = computeStats([
-      record({ playerScore: 3, cpuScore: 1 }),
-      record({ playerScore: 0, cpuScore: 2 }),
-      record({ playerScore: 2, cpuScore: 2 }),
-      record({ playerScore: 5, cpuScore: 0 }),
+      record({ playerScore: 3, aiScore: 1 }),
+      record({ playerScore: 0, aiScore: 2 }),
+      record({ playerScore: 2, aiScore: 2 }),
+      record({ playerScore: 5, aiScore: 0 }),
     ]);
     expect(stats).toMatchObject({ matches: 4, matchWins: 2, matchLosses: 1, matchTies: 1 });
   });

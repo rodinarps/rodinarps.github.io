@@ -2,13 +2,13 @@ import { CHOICES } from "../core/constants";
 import { recordVerdict } from "../core/record";
 import type { HistoryStats } from "../core/stats";
 import type { MatchRecord, RoundResult } from "../core/types";
+import { t, type MessageKey } from "../i18n";
 import { make, requireElement } from "./dom";
-import { capitalize, describeMatchSetup, formatMatchDate, formatPercent } from "./format";
+import { describeMatchSetup, formatMatchDate, formatPercent } from "./format";
 import { createIcon } from "./icons";
-import { HISTORY_TEXT } from "./messages";
 
 const MAX_LISTED_MATCHES = 30;
-const VERDICT_LABEL: Record<RoundResult, string> = { win: "WIN", lose: "LOSS", tie: "TIE" };
+const VERDICT_LABEL: Record<RoundResult, MessageKey> = { win: "history.win", lose: "history.loss", tie: "history.tie" };
 
 export interface HistoryHandlers {
   onOpen(): void;
@@ -73,7 +73,7 @@ export class HistoryView {
     this.exportButton.disabled = !hasMatches;
     this.clearButton.disabled = !hasMatches;
     this.importButton.disabled = !storageAvailable;
-    this.note.textContent = storageAvailable ? HISTORY_TEXT.noteAvailable : HISTORY_TEXT.noteUnavailable;
+    this.note.textContent = t(storageAvailable ? "history.noteAvailable" : "history.noteUnavailable");
   }
 
   private renderMoves(stats: HistoryStats): void {
@@ -94,8 +94,8 @@ export class HistoryView {
         bar.setAttribute("aria-hidden", "true");
         bar.append(fill);
 
-        const meta = `${played} played · ${formatPercent(won, played)} won`;
-        row.append(icon, make("span", "move-name", capitalize(choice)), bar, make("span", "move-meta", meta));
+        const meta = t("history.moveMeta", { played, rate: formatPercent(won, played) });
+        row.append(icon, make("span", "move-name", t(`choice.${choice}`)), bar, make("span", "move-meta", meta));
         return row;
       }),
     );
@@ -106,22 +106,22 @@ export class HistoryView {
 
     this.matchList.replaceChildren(...newestFirst.map(matchRow));
     this.matchList.hidden = records.length === 0;
-    this.empty.textContent = HISTORY_TEXT.empty;
+    this.empty.textContent = t("history.empty");
     this.empty.hidden = records.length > 0;
 
     const hasMore = records.length > newestFirst.length;
     this.listNote.hidden = !hasMore;
-    if (hasMore) this.listNote.textContent = HISTORY_TEXT.latest(newestFirst.length, records.length);
+    if (hasMore) this.listNote.textContent = t("history.latest", { shown: newestFirst.length, total: records.length });
   }
 }
 
 function summaryText(stats: HistoryStats): string {
   const parts = [
-    `Ties ${stats.matchTies}`,
-    `Rounds played ${stats.rounds}`,
-    `Round win rate ${formatPercent(stats.roundWins, stats.rounds)}`,
+    t("history.ties", { count: stats.matchTies }),
+    t("history.rounds", { count: stats.rounds }),
+    t("history.roundWinRate", { rate: formatPercent(stats.roundWins, stats.rounds) }),
   ];
-  if (stats.favoriteMove) parts.push(`Favorite move ${capitalize(stats.favoriteMove)}`);
+  if (stats.favoriteMove) parts.push(t("history.favorite", { move: t(`choice.${stats.favoriteMove}`) }));
   return parts.join(" · ");
 }
 
@@ -130,14 +130,14 @@ function matchRow(record: MatchRecord): HTMLElement {
 
   const info = make("div", "match-info");
   info.append(
-    make("span", "match-setup", describeMatchSetup(record.mode, record.setting)),
+    make("span", "match-setup", `${describeMatchSetup(record.mode, record.setting)} · ${t(`difficulty.${record.difficulty}`)}`),
     make("span", "match-date", formatMatchDate(record.startedAt)),
   );
 
-  const badge = make("span", "match-badge", VERDICT_LABEL[verdict]);
+  const badge = make("span", "match-badge", t(VERDICT_LABEL[verdict]));
   badge.dataset.tone = verdict;
 
   const row = make("li", "match-row");
-  row.append(info, make("strong", "match-score", `${record.playerScore} — ${record.cpuScore}`), badge);
+  row.append(info, make("strong", "match-score", `${record.playerScore} — ${record.aiScore}`), badge);
   return row;
 }

@@ -1,7 +1,8 @@
 import { SECONDS_PER_MINUTE } from "./constants";
-import { chooseOpponentMove, type RandomSource } from "./opponent";
+import { DEFAULT_DIFFICULTY } from "./difficulty";
+import { chooseAiMove, type RandomSource } from "./opponent";
 import { determineRoundResult, verdictFromScores } from "./rules";
-import type { Choice, MatchStatus, Mode, RoundOutcome, RoundResult } from "./types";
+import type { Choice, Difficulty, MatchStatus, Mode, RoundOutcome, RoundResult } from "./types";
 
 /**
  * One game session: scores, the player's move history and the remaining
@@ -15,7 +16,7 @@ export class Match {
 
   private currentStatus: MatchStatus = "playing";
   private player = 0;
-  private cpu = 0;
+  private ai = 0;
   private left: number;
   private readonly outcomes: RoundOutcome[] = [];
 
@@ -23,6 +24,7 @@ export class Match {
     readonly mode: Mode,
     /** Minutes (time mode) or number of rounds (rounds mode). */
     readonly setting: number,
+    readonly difficulty: Difficulty = DEFAULT_DIFFICULTY,
     readonly startedAt: Date = new Date(),
   ) {
     if (!Number.isInteger(setting) || setting < 1) {
@@ -40,8 +42,8 @@ export class Match {
     return this.player;
   }
 
-  get cpuScore(): number {
-    return this.cpu;
+  get aiScore(): number {
+    return this.ai;
   }
 
   /** Seconds left (time mode) or rounds left (rounds mode). */
@@ -61,21 +63,20 @@ export class Match {
 
   /** Who is ahead right now, from the player's point of view. */
   get verdict(): RoundResult {
-    return verdictFromScores(this.player, this.cpu);
+    return verdictFromScores(this.player, this.ai);
   }
 
   /** Plays one round. Returns `null` when the match is paused or finished. */
   playRound(playerChoice: Choice, random: RandomSource = Math.random): RoundOutcome | null {
     if (this.currentStatus !== "playing") return null;
 
-    const playerHistory = this.outcomes.map((outcome) => outcome.playerChoice);
-    const cpuChoice = chooseOpponentMove(playerHistory, random);
-    const result = determineRoundResult(playerChoice, cpuChoice);
-    const outcome: RoundOutcome = { playerChoice, cpuChoice, result };
+    const aiChoice = chooseAiMove(this.outcomes, this.difficulty, random);
+    const result = determineRoundResult(playerChoice, aiChoice);
+    const outcome: RoundOutcome = { playerChoice, aiChoice, result };
     this.outcomes.push(outcome);
 
     if (result === "win") this.player += 1;
-    if (result === "lose") this.cpu += 1;
+    if (result === "lose") this.ai += 1;
 
     if (this.mode === "rounds") this.consumeOne();
 

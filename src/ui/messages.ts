@@ -1,6 +1,6 @@
 import type { RoundOutcome, RoundResult } from "../core/types";
-import { capitalize } from "./format";
-import type { ImportSummary } from "../storage/historyStore";
+import { t, type MessageKey } from "../i18n";
+import { HistoryImportError, type HistoryImportErrorCode, type ImportSummary } from "../storage/historyStore";
 import type { IconName } from "./icons";
 
 export type Tone = "neutral" | RoundResult;
@@ -11,60 +11,84 @@ export interface Banner {
   readonly icon?: IconName;
 }
 
-export const MESSAGES = {
-  welcome: "Welcome! Choose a game mode to get started.",
-  chooseMove: "Choose your move!",
-  paused: "Game paused. Take your time.",
-  restarted: "Game restarted. Good luck!",
-  quit: "To quit the game, close this browser tab.",
-  confirmRestart: "Restart with the same settings?",
-  confirmHome: "Go back to the main menu? Your current match will be lost.",
-  historyNotSaved: "Couldn't save this match: the browser is blocking or has filled its site storage.",
-  nothingToExport: "There is no history to export yet.",
-  backupDownloaded: "Backup downloaded. Keep the file somewhere safe.",
-  fileTooLarge: "That file is too large to be a history backup.",
-  importFailed: "Couldn't read that file.",
-  confirmClearHistory: "Delete all saved matches from this browser? This can't be undone, so export a backup first if you want to keep them.",
-  historyCleared: "History cleared.",
-  historyNotCleared: "Couldn't clear the history.",
-} as const;
+/**
+ * What the banner is saying, kept as data (not as finished text) so it can be
+ * written again in the other language when the player switches.
+ */
+export type BannerState =
+  | { readonly kind: "welcome" }
+  | { readonly kind: "chooseMove" }
+  | { readonly kind: "paused" }
+  | { readonly kind: "history" }
+  | { readonly kind: "round"; readonly outcome: RoundOutcome }
+  | { readonly kind: "final"; readonly playerScore: number; readonly aiScore: number };
 
-export const HISTORY_TEXT = {
-  banner: "Your match history. It is saved in this browser only.",
-  empty: "No matches saved yet. Finish a match and it will show up here.",
-  noteAvailable: "Saved only in this browser on this device. Export a backup before clearing browser data.",
-  noteUnavailable: "This browser is blocking site storage, so matches can't be saved here.",
-  latest: (shown: number, total: number) => `Showing the latest ${shown} of ${total} matches.`,
-} as const;
+export function roundBanner({ playerChoice, aiChoice, result }: RoundOutcome): Banner {
+  switch (result) {
+    case "win":
+      return {
+        message: t("msg.roundWin", {
+          winner: t(`choice.${playerChoice}`),
+          beats: t(`beats.${playerChoice}`),
+          loser: t(`choice.${aiChoice}`),
+        }),
+        tone: "win",
+        icon: "party",
+      };
+    case "lose":
+      return {
+        message: t("msg.roundLose", {
+          winner: t(`choice.${aiChoice}`),
+          beats: t(`beats.${aiChoice}`),
+          loser: t(`choice.${playerChoice}`),
+        }),
+        tone: "lose",
+        icon: "skull",
+      };
+    case "tie":
+      return { message: t("msg.roundTie", { move: t(`choice.${playerChoice}`) }), tone: "tie", icon: "handshake" };
+  }
+}
+
+export function finalBanner(playerScore: number, aiScore: number): Banner {
+  const score = `${playerScore} — ${aiScore}`;
+
+  if (playerScore === 0 && aiScore === 0) return { message: t("msg.finalNone"), tone: "tie" };
+  if (playerScore > aiScore) return { message: t("msg.finalWin", { score }), tone: "win", icon: "trophy" };
+  if (aiScore > playerScore) return { message: t("msg.finalLose", { score }), tone: "lose" };
+  return { message: t("msg.finalTie", { score }), tone: "tie" };
+}
+
+export function buildBanner(state: BannerState): Banner {
+  switch (state.kind) {
+    case "welcome":
+      return { message: t("msg.welcome"), tone: "neutral" };
+    case "chooseMove":
+      return { message: t("msg.chooseMove"), tone: "neutral" };
+    case "paused":
+      return { message: t("msg.paused"), tone: "neutral" };
+    case "history":
+      return { message: t("history.banner"), tone: "neutral" };
+    case "round":
+      return roundBanner(state.outcome);
+    case "final":
+      return finalBanner(state.playerScore, state.aiScore);
+  }
+}
 
 export function importMessage({ added, duplicates, invalid }: ImportSummary): string {
-  const parts = [`Imported ${added} ${added === 1 ? "match" : "matches"}`];
-  if (duplicates > 0) parts.push(`${duplicates} already saved`);
-  if (invalid > 0) parts.push(`${invalid} skipped as damaged`);
+  const parts = [t("import.done", { added })];
+  if (duplicates > 0) parts.push(t("import.duplicates", { count: duplicates }));
+  if (invalid > 0) parts.push(t("import.invalid", { count: invalid }));
   return `${parts.join(" · ")}.`;
 }
 
-export function roundBanner({ playerChoice, cpuChoice, result }: RoundOutcome): Banner {
-  const player = capitalize(playerChoice);
-  const cpu = capitalize(cpuChoice);
+const IMPORT_ERROR_TEXT: Record<HistoryImportErrorCode, MessageKey> = {
+  "invalid-file": "import.invalidFile",
+  "unsupported-version": "import.unsupportedVersion",
+  "save-failed": "import.saveFailed",
+};
 
-  switch (result) {
-    case "win":
-      return { message: `You Win!  ${player} beats ${cpu}`, tone: "win", icon: "party" };
-    case "lose":
-      return { message: `You Lose!  ${cpu} beats ${player}`, tone: "lose", icon: "skull" };
-    case "tie":
-      return { message: `Tie!  Both chose ${player}`, tone: "tie", icon: "handshake" };
-  }
-}
-
-export function finalBanner(playerScore: number, cpuScore: number): Banner {
-  const score = `${playerScore} — ${cpuScore}`;
-
-  if (playerScore === 0 && cpuScore === 0) {
-    return { message: "Game Over! No scores recorded.", tone: "tie" };
-  }
-  if (playerScore > cpuScore) return { message: `You Win!  ${score}`, tone: "win", icon: "trophy" };
-  if (cpuScore > playerScore) return { message: `CPU Wins!  ${score}`, tone: "lose" };
-  return { message: `It's a Tie!  ${score}`, tone: "tie" };
+export function importErrorMessage(error: unknown): string {
+  return error instanceof HistoryImportError ? t(IMPORT_ERROR_TEXT[error.code]) : t("msg.importFailed");
 }

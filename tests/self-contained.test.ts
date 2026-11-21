@@ -12,12 +12,24 @@ const files: [string, string][] = [["index.html", indexHtml], ...Object.entries(
 
 /**
  * Characters covered by the bundled fonts (their `unicode-range` in main.css):
- * Latin-1, general punctuation (— · …) and the minus sign. Anything else would be
- * drawn by whatever font the visitor's operating system happens to have.
+ * Latin-1, general punctuation (— · …) and the minus sign from DM Sans / Space Grotesk, and
+ * the Arabic letters and punctuation from Cairo. Anything else would be drawn by whatever
+ * font the visitor's operating system happens to have.
  */
+const COVERED_RANGES: readonly (readonly [number, number])[] = [
+  [0x0000, 0x00ff], // Latin-1
+  [0x2000, 0x206f], // general punctuation
+  [0x2212, 0x2212], // minus sign
+  [0x0600, 0x06ff], // Arabic
+  [0x0750, 0x077f], // Arabic supplement
+  [0x200c, 0x200e], // joiners and direction marks
+  [0xfb50, 0xfdff], // Arabic presentation forms A
+  [0xfe70, 0xfefc], // Arabic presentation forms B
+];
+
 function isCoveredByBundledFonts(char: string): boolean {
   const codePoint = char.codePointAt(0) ?? 0;
-  return codePoint <= 0xff || (codePoint >= 0x2000 && codePoint <= 0x206f) || codePoint === 0x2212;
+  return COVERED_RANGES.some(([first, last]) => codePoint >= first && codePoint <= last);
 }
 
 describe("self-contained project", () => {

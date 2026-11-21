@@ -14,6 +14,11 @@ const COUNTER: Record<Choice, Choice> = {
   scissors: "rock",
 };
 
+/** The choice that loses to the given one. */
+export function yieldTo(choice: Choice): Choice {
+  return BEATS[choice];
+}
+
 export function isChoice(value: unknown): value is Choice {
   return CHOICES.includes(value as Choice);
 }
@@ -23,13 +28,13 @@ export function counterTo(choice: Choice): Choice {
 }
 
 /** Who is ahead, from the player's point of view. */
-export function verdictFromScores(player: number, cpu: number): RoundResult {
-  if (player > cpu) return "win";
-  if (player < cpu) return "lose";
+export function verdictFromScores(player: number, ai: number): RoundResult {
+  if (player > ai) return "win";
+  if (player < ai) return "lose";
   return "tie";
 }
 
-export function determineRoundResult(player: Choice, cpu: Choice): RoundResult {
-  if (player === cpu) return "tie";
-  return BEATS[player] === cpu ? "win" : "lose";
+export function determineRoundResult(player: Choice, ai: Choice): RoundResult {
+  if (player === ai) return "tie";
+  return BEATS[player] === ai ? "win" : "lose";
 }

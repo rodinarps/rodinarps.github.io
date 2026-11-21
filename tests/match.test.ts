@@ -15,7 +15,7 @@ describe("Match (rounds mode)", () => {
     expect(match.playRound("scissors", alwaysZero)?.result).toBe("lose");
     expect(match.status).toBe("finished");
     expect(match.playerScore).toBe(1);
-    expect(match.cpuScore).toBe(1);
+    expect(match.aiScore).toBe(1);
     expect(match.verdict).toBe("tie");
     expect(match.progressPercent).toBe(100);
   });
@@ -86,14 +86,18 @@ describe("Match validation", () => {
 describe("Match history of rounds", () => {
   it("remembers every round and when it started", () => {
     const startedAt = new Date("2026-11-18T12:00:00.000Z");
-    const match = new Match("rounds", 3, startedAt);
+    const match = new Match("rounds", 3, "hard", startedAt);
     match.playRound("paper", alwaysZero);
     match.playRound("scissors", alwaysZero);
 
     expect(match.startedAt).toBe(startedAt);
     expect(match.rounds).toEqual([
-      { playerChoice: "paper", cpuChoice: "rock", result: "win" },
-      { playerChoice: "scissors", cpuChoice: "rock", result: "lose" },
+      { playerChoice: "paper", aiChoice: "rock", result: "win" },
+      { playerChoice: "scissors", aiChoice: "rock", result: "lose" },
     ]);
+  });
+  it("remembers the difficulty it was started with", () => {
+    expect(new Match("rounds", 3).difficulty).toBe("medium");
+    expect(new Match("rounds", 3, "extreme").difficulty).toBe("extreme");
   });
 });

@@ -1,12 +1,13 @@
 import { LOW_TIME_THRESHOLD_SECONDS, TOAST_DURATION_MS } from "../core/constants";
 import type { Match } from "../core/match";
 import { isChoice } from "../core/rules";
-import type { Choice, Mode } from "../core/types";
+import type { Choice, Difficulty, Mode } from "../core/types";
+import { t } from "../i18n";
 import { DelayedAction } from "../utils/timers";
 import { requireElement, requireElements } from "./dom";
 import { formatTimeLeft } from "./format";
 import { createIcon, type IconName } from "./icons";
-import type { Tone } from "./messages";
+import type { Banner } from "./messages";
 
 const COLOR = {
   win: "var(--win)",
@@ -31,6 +32,7 @@ export interface ViewHandlers {
   onRestart(): void;
   onHome(): void;
   onQuit(): void;
+  onToggleLanguage(): void;
 }
 
 /** Everything that touches the main game page lives here. */
@@ -42,12 +44,13 @@ export class GameView {
   private readonly resultText = requireElement("#result-text");
 
   private readonly playerScore = requireElement("#player-score");
-  private readonly cpuScore = requireElement("#cpu-score");
+  private readonly aiScore = requireElement("#ai-score");
   private readonly homePlayerScore = requireElement("#home-player-score");
-  private readonly homeCpuScore = requireElement("#home-cpu-score");
+  private readonly homeAiScore = requireElement("#home-ai-score");
 
   private readonly playerChoice = requireElement("#player-choice-display");
-  private readonly cpuChoice = requireElement("#cpu-choice-display");
+  private readonly aiChoice = requireElement("#ai-choice-display");
+  private readonly aiName = requireElement("#ai-name");
   private readonly choiceButtons = requireElements<HTMLButtonElement>(".choice-button");
 
   private readonly progressLabel = requireElement("#progress-label");
@@ -58,6 +61,10 @@ export class GameView {
   private readonly pauseButton = requireElement<HTMLButtonElement>("#pause-button");
   private readonly toast = requireElement("#toast");
   private readonly toastTimer = new DelayedAction();
+
+  private paused = false;
+  private difficulty: Difficulty | null = null;
+  private shown: { player: Choice | null; ai: Choice | null } = { player: null, ai: null };
 
   bind(handlers: ViewHandlers): void {
     for (const mode of Object.keys(MODE_BUTTON_SELECTOR) as Mode[]) {
@@ -77,6 +84,7 @@ export class GameView {
     requireElement("#restart-button").addEventListener("click", handlers.onRestart);
     requireElement("#home-button").addEventListener("click", handlers.onHome);
     requireElement("#quit-button").addEventListener("click", handlers.onQuit);
+    requireElement("#language-toggle").addEventListener("click", handlers.onToggleLanguage);
   }
 
   // Screens
@@ -95,7 +103,7 @@ export class GameView {
 
   // Banner and toast
 
-  setBanner(message: string, tone: Tone = "neutral", icon?: IconName): void {
+  setBanner({ message, tone, icon }: Banner): void {
     this.resultText.replaceChildren(...(icon ? [createIcon(icon), " "] : []), message);
     this.resultBanner.dataset.tone = tone;
   }
@@ -112,24 +120,42 @@ export class GameView {
 
   // Scores and choices
 
-  renderScores(player: number, cpu: number): void {
+  renderScores(player: number, ai: number): void {
     this.playerScore.textContent = String(player);
-    this.cpuScore.textContent = String(cpu);
+    this.aiScore.textContent = String(ai);
     this.homePlayerScore.textContent = String(player);
-    this.homeCpuScore.textContent = String(cpu);
+    this.homeAiScore.textContent = String(ai);
 
-    this.playerScore.style.color = scoreColor(player, cpu, COLOR.win);
-    this.cpuScore.style.color = scoreColor(cpu, player, COLOR.lose);
+    this.playerScore.style.color = scoreColor(player, ai, COLOR.win);
+    this.aiScore.style.color = scoreColor(ai, player, COLOR.lose);
   }
 
   resetChoices(): void {
-    this.setChoiceDisplay(this.playerChoice, "?", "Your choice not made yet");
-    this.setChoiceDisplay(this.cpuChoice, "?", "Computer choice not made yet");
+    this.shown = { player: null, ai: null };
+    this.playerChoice.textContent = "?";
+    this.aiChoice.textContent = "?";
+    this.relabelChoices();
   }
 
-  showChoices(player: Choice, cpu: Choice): void {
+  showChoices(player: Choice, ai: Choice): void {
+    this.shown = { player, ai };
     this.animateChoice(this.playerChoice, player);
-    this.animateChoice(this.cpuChoice, cpu);
+    this.animateChoice(this.aiChoice, ai);
+    this.relabelChoices();
+  }
+
+  /** Shows which level the AI is playing at, next to its name. `null` on the menu. */
+  setDifficulty(difficulty: Difficulty | null): void {
+    this.difficulty = difficulty;
+    this.renderAiName();
+  }
+
+  /** Writes the text this view draws itself again, after the language changed. */
+  refreshLanguage(match: Match | null): void {
+    this.renderAiName();
+    this.renderPauseLabel();
+    this.relabelChoices();
+    if (match) this.renderProgress(match);
   }
 
   setChoicesEnabled(enabled: boolean): void {
@@ -142,10 +168,10 @@ export class GameView {
     const isTimeMode = match.mode === "time";
     const percent = Math.min(100, Math.max(0, match.progressPercent));
 
-    this.progressLabel.textContent = isTimeMode ? "TIME LEFT" : "ROUNDS LEFT";
+    this.progressLabel.textContent = t(isTimeMode ? "progress.time" : "progress.rounds");
     this.progressValue.textContent = isTimeMode
       ? formatTimeLeft(match.remaining)
-      : `${match.remaining} / ${match.total}`;
+      : t("progress.roundsValue", { left: match.remaining, total: match.total });
     this.progressValue.style.color = isTimeMode
       ? match.remaining > LOW_TIME_THRESHOLD_SECONDS
         ? COLOR.win
@@ -162,7 +188,8 @@ export class GameView {
   }
 
   setPaused(paused: boolean): void {
-    setIconLabel(this.pauseButton, paused ? "play" : "pause", paused ? "Resume" : "Pause");
+    this.paused = paused;
+    this.renderPauseLabel();
   }
 
   // Helpers
@@ -173,17 +200,28 @@ export class GameView {
     this.historyScreen.hidden = screen !== "history";
   }
 
+  private renderPauseLabel(): void {
+    setIconLabel(this.pauseButton, this.paused ? "play" : "pause", t(this.paused ? "game.resume" : "game.pause"));
+  }
+
+  private renderAiName(): void {
+    this.aiName.textContent = this.difficulty
+      ? `${t("arena.ai")} · ${t(`difficulty.${this.difficulty}`)}`
+      : t("arena.ai");
+  }
+
+  private relabelChoices(): void {
+    const { player, ai } = this.shown;
+    this.playerChoice.setAttribute("aria-label", player ? t(`choice.${player}`) : t("arena.playerNone"));
+    this.aiChoice.setAttribute("aria-label", ai ? t(`choice.${ai}`) : t("arena.aiNone"));
+  }
+
   private animateChoice(element: HTMLElement, choice: Choice): void {
-    this.setChoiceDisplay(element, createIcon(choice), choice);
+    element.replaceChildren(createIcon(choice));
     element.classList.remove("animate");
     // Force a reflow so identical consecutive choices replay the animation.
     void element.offsetWidth;
     element.classList.add("animate");
-  }
-
-  private setChoiceDisplay(element: HTMLElement, content: string | Node, label: string): void {
-    element.replaceChildren(content);
-    element.setAttribute("aria-label", label);
   }
 }
 
@@ -201,6 +239,7 @@ function progressFillColor(percent: number): string {
 
 function setIconLabel(button: HTMLElement, icon: IconName, text: string): void {
   const iconWrapper = document.createElement("span");
+  iconWrapper.className = "btn-icon";
   iconWrapper.setAttribute("aria-hidden", "true");
   iconWrapper.append(createIcon(icon));
   button.replaceChildren(iconWrapper, ` ${text}`);

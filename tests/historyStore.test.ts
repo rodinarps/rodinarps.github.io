@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import type { StorageLike } from "../src/storage/browserStorage";
 import {
   HISTORY_STORAGE_KEY,
   HistoryImportError,
   HistoryStore,
   MAX_STORED_MATCHES,
-  type StorageLike,
 } from "../src/storage/historyStore";
 import type { MatchRecord } from "../src/core/types";
 
@@ -28,13 +28,14 @@ class FakeStorage implements StorageLike {
 
 function record(id: string, minute = 0): MatchRecord {
   return {
-    version: 1,
+    version: 2,
     id,
     startedAt: new Date(Date.UTC(2026, 10, 18, 12, minute)).toISOString(),
     mode: "rounds",
     setting: 1,
+    difficulty: "medium",
     playerScore: 1,
-    cpuScore: 0,
+    aiScore: 0,
     rounds: "pr",
   };
 }
@@ -97,7 +98,7 @@ describe("HistoryStore with bad storage", () => {
   it("skips damaged entries but keeps the good ones", () => {
     storage.setItem(
       HISTORY_STORAGE_KEY,
-      JSON.stringify({ version: 1, matches: [record("good"), { id: "bad" }, null] }),
+      JSON.stringify({ version: 2, matches: [record("good"), { id: "bad" }, null] }),
     );
     expect(store.list().map((saved) => saved.id)).toEqual(["good"]);
   });
@@ -131,7 +132,7 @@ describe("backup export and import", () => {
     store.add(record("a", 1));
     const backup = JSON.stringify({
       app: "RodinaRPS",
-      version: 1,
+      version: 2,
       matches: [record("a", 1), record("b", 2), { nope: true }],
     });
     expect(store.importJson(backup)).toEqual({ added: 1, duplicates: 1, invalid: 1 });
@@ -141,12 +142,74 @@ describe("backup export and import", () => {
   it("rejects files that are not a backup", () => {
     expect(() => store.importJson("hello")).toThrow(HistoryImportError);
     expect(() => store.importJson(JSON.stringify({ hello: "world" }))).toThrow(HistoryImportError);
-    expect(() => store.importJson(JSON.stringify({ version: 2, matches: [] }))).toThrow(HistoryImportError);
+    expect(() => store.importJson(JSON.stringify({ version: 99, matches: [] }))).toThrow(HistoryImportError);
   });
 
   it("tells you when the imported matches could not be saved", () => {
     storage.failWrites = true;
-    const backup = JSON.stringify({ version: 1, matches: [record("a")] });
+    const backup = JSON.stringify({ version: 2, matches: [record("a")] });
     expect(() => store.importJson(backup)).toThrow(HistoryImportError);
+  });
+});
+
+const legacyMatch = {
+  version: 1,
+  id: "legacy-1",
+  startedAt: "2026-11-10T10:00:00.000Z",
+  mode: "rounds",
+  setting: 5,
+  playerScore: 3,
+  cpuScore: 2,
+  rounds: "rsprpp",
+};
+
+describe("matches saved before difficulty levels existed", () => {
+  it("are read as medium matches against the AI", () => {
+    storage.setItem(HISTORY_STORAGE_KEY, JSON.stringify({ version: 1, matches: [legacyMatch] }));
+    expect(store.list()).toEqual([
+      {
+        version: 2,
+        id: "legacy-1",
+        startedAt: "2026-11-10T10:00:00.000Z",
+        mode: "rounds",
+        setting: 5,
+        difficulty: "medium",
+        playerScore: 3,
+        aiScore: 2,
+        rounds: "rsprpp",
+      },
+    ]);
+  });
+
+  it("are saved in the current format as soon as something new is added", () => {
+    storage.setItem(HISTORY_STORAGE_KEY, JSON.stringify({ version: 1, matches: [legacyMatch] }));
+    store.add(record("new", 5));
+    const saved = JSON.parse(storage.getItem(HISTORY_STORAGE_KEY) as string);
+    expect(saved.version).toBe(2);
+    expect(saved.matches.map((match: { id: string }) => match.id)).toEqual(["legacy-1", "new"]);
+    expect(saved.matches[0].aiScore).toBe(2);
+    expect(saved.matches[0].cpuScore).toBeUndefined();
+  });
+
+  it("can still be imported from an old backup file", () => {
+    const oldBackup = JSON.stringify({ app: "RodinaRPS", version: 1, matches: [legacyMatch] });
+    expect(store.importJson(oldBackup)).toEqual({ added: 1, duplicates: 0, invalid: 0 });
+    expect(store.list()[0]?.difficulty).toBe("medium");
+  });
+});
+
+describe("import errors", () => {
+  it("say what went wrong with a code the page can word in either language", () => {
+    const codeOf = (action: () => unknown) => {
+      try {
+        action();
+      } catch (error) {
+        return (error as HistoryImportError).code;
+      }
+    };
+    expect(codeOf(() => store.importJson("hello"))).toBe("invalid-file");
+    expect(codeOf(() => store.importJson(JSON.stringify({ version: 99, matches: [] })))).toBe("unsupported-version");
+    storage.failWrites = true;
+    expect(codeOf(() => store.importJson(JSON.stringify({ version: 2, matches: [record("a")] })))).toBe("save-failed");
   });
 });

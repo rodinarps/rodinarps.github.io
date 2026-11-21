@@ -1,9 +1,17 @@
 import { MODE_CONFIG, type ModeConfig } from "../core/constants";
-import type { Mode } from "../core/types";
-import { requireElement } from "./dom";
+import { DEFAULT_DIFFICULTY, DIFFICULTIES } from "../core/difficulty";
+import type { Difficulty, Mode } from "../core/types";
+import { t } from "../i18n";
+import { make, requireElement } from "./dom";
 import { createIcon, MODE_ICON } from "./icons";
 
-/** The "how long / how many rounds?" dialog. */
+export interface SettingsResult {
+  /** Minutes (time mode) or number of rounds (rounds mode). */
+  readonly setting: number;
+  readonly difficulty: Difficulty;
+}
+
+/** The "how long / how many rounds, and how hard?" dialog. */
 export class SettingsDialog {
   private readonly dialog = requireElement<HTMLDialogElement>("#settings-dialog");
   private readonly form = requireElement<HTMLFormElement>("#settings-form");
@@ -14,18 +22,21 @@ export class SettingsDialog {
   private readonly input = requireElement<HTMLInputElement>("#custom-value");
   private readonly unit = requireElement("#custom-unit");
   private readonly hint = requireElement("#input-hint");
+  private readonly difficultyGrid = requireElement("#difficulty-grid");
+  private readonly difficultyHint = requireElement("#difficulty-hint");
 
   private mode: Mode = "time";
+  private difficulty: Difficulty = DEFAULT_DIFFICULTY;
   private initialValue = MODE_CONFIG.time.defaultValue;
-  private submittedValue: number | null = null;
-  private pendingResolve: ((value: number | null) => void) | null = null;
+  private submitted: SettingsResult | null = null;
+  private pendingResolve: ((result: SettingsResult | null) => void) | null = null;
 
   constructor() {
     this.form.addEventListener("submit", (event) => {
       event.preventDefault();
       this.submit();
     });
-    this.dialog.addEventListener("close", () => this.settle(this.submittedValue));
+    this.dialog.addEventListener("close", () => this.settle(this.submitted));
 
     requireElement("#cancel-settings").addEventListener("click", () => this.dialog.close());
     requireElement("#minus-value").addEventListener("click", () => this.step(-1));
@@ -37,25 +48,26 @@ export class SettingsDialog {
     });
   }
 
-  /** Resolves with the chosen value, or `null` if the dialog was cancelled. */
-  open(mode: Mode, initialValue: number): Promise<number | null> {
+  /** Resolves with the chosen settings, or `null` if the dialog was cancelled. */
+  open(mode: Mode, initialValue: number, initialDifficulty: Difficulty): Promise<SettingsResult | null> {
     this.settle(null);
     this.mode = mode;
     this.initialValue = initialValue;
-    this.submittedValue = null;
+    this.submitted = null;
 
     const config = this.config;
     this.dialog.dataset.mode = mode;
     this.icon.replaceChildren(createIcon(MODE_ICON[mode]));
-    this.title.textContent = config.title;
-    this.subtitle.textContent = config.subtitle;
-    this.unit.textContent = config.unit;
-    this.hint.textContent = `Choose between ${config.min} and ${config.max} ${config.unitLabel}.`;
+    this.title.textContent = t(`mode.${mode}.title`);
+    this.subtitle.textContent = t(`mode.${mode}.subtitle`);
+    this.unit.textContent = t(`mode.${mode}.unit`);
+    this.hint.textContent = t(`mode.${mode}.hint`, { min: config.min, max: config.max });
     this.input.min = String(config.min);
     this.input.max = String(config.max);
 
     this.renderPresets();
     this.setValue(initialValue);
+    this.renderDifficulties(initialDifficulty);
 
     return new Promise((resolve) => {
       this.pendingResolve = resolve;
@@ -73,8 +85,9 @@ export class SettingsDialog {
       this.setValue(this.initialValue);
       return;
     }
-    this.submittedValue = this.normalize(rawValue);
-    this.setValue(this.submittedValue);
+    const setting = this.normalize(rawValue);
+    this.setValue(setting);
+    this.submitted = { setting, difficulty: this.difficulty };
     this.dialog.close();
   }
 
@@ -94,20 +107,13 @@ export class SettingsDialog {
   }
 
   private renderPresets(): void {
-    const { presets, unit } = this.config;
+    const unit = t(`mode.${this.mode}.unit`);
     this.presetGrid.replaceChildren(
-      ...presets.map((preset) => {
-        const button = document.createElement("button");
+      ...this.config.presets.map((preset) => {
+        const button = make("button", "preset-button");
         button.type = "button";
-        button.className = "preset-button";
         button.dataset.value = String(preset);
-
-        const amount = document.createElement("strong");
-        amount.textContent = String(preset);
-        const unitLabel = document.createElement("span");
-        unitLabel.textContent = unit;
-        button.append(amount, unitLabel);
-
+        button.append(make("strong", "", String(preset)), make("span", "", unit));
         button.addEventListener("click", () => this.setValue(preset));
         return button;
       }),
@@ -121,8 +127,36 @@ export class SettingsDialog {
     }
   }
 
-  private settle(value: number | null): void {
-    this.pendingResolve?.(value);
+  private renderDifficulties(selected: Difficulty): void {
+    this.difficulty = selected;
+    this.difficultyGrid.replaceChildren(
+      ...DIFFICULTIES.map((difficulty) => {
+        const button = make("button", "difficulty-button", t(`difficulty.${difficulty}`));
+        button.type = "button";
+        button.dataset.difficulty = difficulty;
+        button.addEventListener("click", () => this.selectDifficulty(difficulty));
+        return button;
+      }),
+    );
+    this.highlightDifficulty();
+  }
+
+  private selectDifficulty(difficulty: Difficulty): void {
+    this.difficulty = difficulty;
+    this.highlightDifficulty();
+  }
+
+  private highlightDifficulty(): void {
+    for (const button of this.difficultyGrid.querySelectorAll<HTMLButtonElement>(".difficulty-button")) {
+      const isSelected = button.dataset.difficulty === this.difficulty;
+      button.classList.toggle("selected", isSelected);
+      button.setAttribute("aria-pressed", String(isSelected));
+    }
+    this.difficultyHint.textContent = t(`difficulty.${this.difficulty}.description`);
+  }
+
+  private settle(result: SettingsResult | null): void {
+    this.pendingResolve?.(result);
     this.pendingResolve = null;
   }
 }

@@ -34,14 +34,14 @@ export function computeStats(records: readonly MatchRecord[]): HistoryStats {
   const won: Record<Choice, number> = { rock: 0, paper: 0, scissors: 0 };
 
   for (const record of records) {
-    const verdict = verdictFromScores(record.playerScore, record.cpuScore);
+    const verdict = verdictFromScores(record.playerScore, record.aiScore);
     if (verdict === "win") matchWins += 1;
     else if (verdict === "lose") matchLosses += 1;
     else matchTies += 1;
 
-    for (const { playerChoice, cpuChoice } of decodeRounds(record.rounds)) {
+    for (const { playerChoice, aiChoice } of decodeRounds(record.rounds)) {
       played[playerChoice] += 1;
-      const result = determineRoundResult(playerChoice, cpuChoice);
+      const result = determineRoundResult(playerChoice, aiChoice);
       if (result === "win") {
         roundWins += 1;
         won[playerChoice] += 1;
