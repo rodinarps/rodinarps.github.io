@@ -150,22 +150,6 @@ What is still outside the project:
 - **Hosting** – GitHub Pages is just one option. `npm run build` produces plain static files in `dist/`
   that can be served from any web server.
 
-## Deploying to GitHub Pages
-
-The workflow in `.github/workflows/deploy.yml` runs the tests, builds the game and publishes it
-on every push to `main`.
-
-1. Put this project in a GitHub repository whose default branch is `main`.
-2. In the repository go to **Settings → Pages**.
-3. Under **Build and deployment → Source**, choose **GitHub Actions**.
-4. Push to `main` (or run the workflow from the **Actions** tab).
-
-Where the game appears depends on the repository name. A repository called `<owner>.github.io` (here: `rodinarps.github.io`
-inside the `rodinarps` organization) is the owner's main site and gets `https://<owner>.github.io/`. Any other name gets
-`https://<owner>.github.io/<repository-name>/`. `<owner>` must be the exact name of the account or organization that owns the repository.
-
-`vite.config.ts` uses `base: "./"`, so the same build works under any repository name or custom domain.
-
 ## Browser note
 
 The **Quit** button shows a message instead of closing the tab, because browsers don't let a page close itself.
