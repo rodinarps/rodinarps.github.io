@@ -61,6 +61,7 @@
 body {
   min-width: 320px;
   min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   overflow-x: hidden;
   color: var(--text);
@@ -92,6 +93,7 @@ button:focus-visible, input:focus-visible, a:focus-visible {
 .app-shell {
   width: min(100% - 40px, 1040px);
   min-height: 100vh;
+  min-height: 100dvh;
   margin: 0 auto;
   padding: 24px 0 22px;
   display: flex;
@@ -502,3 +504,22 @@ html[lang="ar"] .mode-card-description { font-size: 13px; }
 html[lang="ar"] :is(.topbar-meta, .eyebrow, .mode-heading, .choose-heading, .mode-card-action, .home-footnote, .fighter-label, .choice-name, .control-button, .history-subheading, .history-summary) { font-size: 12px; }
 html[lang="ar"] :is(.score-caption, .fighter-name, .progress-meta, .dialog-kicker, .preset-button span, .custom-setting label, .setting-label, .input-hint, .stat-label, .match-date, .move-meta, .match-badge, .history-note) { font-size: 11px; }
 html[lang="ar"] .footer-note { font-size: 10px; }
+
+/* ---------- Stable layout ---------- */
+/* Keep room for the scrollbar so the page doesn't shift sideways when it appears. */
+html { scrollbar-gutter: stable; }
+/* See public/early-language.js: hidden for a moment while English is applied, never visible half-translated. */
+html[data-language-pending] body { visibility: hidden; }
+/* The big title belongs to the menu. Hiding it elsewhere keeps the game on one screen. */
+body[data-screen="game"] .hero-copy, body[data-screen="history"] .hero-copy { display: none; }
+
+/* Arabic control buttons are wider than the English ones, so keep all four on one row on phones. */
+@media (max-width: 480px) {
+  html[lang="ar"] .control-bar { gap: 6px; }
+  html[lang="ar"] .control-button { font-size: 11px; padding-inline: 8px; }
+}
+@media (max-width: 400px) {
+  html[lang="ar"] .control-bar { gap: 5px; }
+  html[lang="ar"] .control-button { font-size: 10px; padding-inline: 6px; }
+  html[lang="ar"] .control-button [data-icon], html[lang="ar"] .control-button .btn-icon { margin-inline-end: 3px; font-size: 11px; }
+}

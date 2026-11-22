@@ -23,3 +23,6 @@ new App(
   preferencesStore,
   preferences,
 ).start();
+
+// The page is translated and drawn: show it (see public/early-language.js).
+document.documentElement.removeAttribute("data-language-pending");

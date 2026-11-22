@@ -198,6 +198,9 @@ export class GameView {
     this.homeScreen.hidden = screen !== "home";
     this.gameScreen.hidden = screen !== "game";
     this.historyScreen.hidden = screen !== "history";
+    document.body.dataset.screen = screen;
+    // Screens have different heights; always start at the top instead of wherever the old scroll position lands.
+    window.scrollTo(0, 0);
   }
 
   private renderPauseLabel(): void {
