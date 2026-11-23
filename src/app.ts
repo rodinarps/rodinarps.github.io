@@ -27,6 +27,7 @@ export class App {
   private readonly lastSetting: Record<Mode, number> = {
     time: MODE_CONFIG.time.defaultValue,
     rounds: MODE_CONFIG.rounds.defaultValue,
+    free: 0,
   };
 
   private readonly clock = new RepeatingTimer();
@@ -50,6 +51,7 @@ export class App {
       onModeSelected: (mode) => void this.chooseSettings(mode),
       onChoice: (choice) => this.playRound(choice),
       onTogglePause: () => this.togglePause(),
+      onFinish: () => this.requestFinish(),
       onRestart: () => this.requestRestart(),
       onHome: () => this.requestHome(),
       onQuit: () => this.view.showToast(t("msg.quit")),
@@ -106,6 +108,7 @@ export class App {
     this.view.setDifficulty(difficulty);
     this.view.setChoicesEnabled(true);
     this.view.setPauseVisible(mode === "time");
+    this.view.setFinishVisible(mode === "free");
     this.view.setPaused(false);
     this.view.showGame();
     this.showBanner({ kind: "chooseMove" });
@@ -148,10 +151,20 @@ export class App {
     this.clock.stop();
     this.view.setChoicesEnabled(false);
     this.view.setPauseVisible(false);
+    this.view.setFinishVisible(false);
 
     this.showBanner({ kind: "final", playerScore: match.playerScore, aiScore: match.aiScore });
     this.autoReturnHome.schedule(() => this.returnHome(), RESULT_DISPLAY_DURATION_MS);
     this.saveMatch(match);
+  }
+
+  /** Free play has no end of its own: the player ends the session, and it is saved like any other match. */
+  private requestFinish(): void {
+    const match = this.match;
+    if (!match || match.status !== "playing" || !this.view.confirm(t("msg.confirmFinish"))) return;
+
+    match.finish();
+    this.finishMatch(match);
   }
 
   private requestRestart(): void {
@@ -175,6 +188,7 @@ export class App {
     this.view.resetChoices();
     this.view.renderScores(0, 0);
     this.view.setDifficulty(null);
+    this.view.setFinishVisible(false);
     this.view.setChoicesEnabled(false);
     this.showBanner({ kind: "welcome" });
     this.historyView.renderCount(this.history.list().length);
@@ -182,8 +196,9 @@ export class App {
 
   // History
 
-  /** Only finished matches are saved; restarting or leaving a match early saves nothing. */
+  /** Only finished matches with at least one round are saved; restarting or leaving early saves nothing. */
   private saveMatch(match: Match): void {
+    if (match.rounds.length === 0) return;
     if (this.history.add(createMatchRecord(match))) return;
     if (this.warnedAboutStorage) return;
     this.warnedAboutStorage = true;

@@ -10,6 +10,7 @@ import type { Choice, Difficulty, MatchStatus, Mode, RoundOutcome, RoundResult }
  *
  * - "time" mode: `setting` is minutes; call `tick()` once per second.
  * - "rounds" mode: `setting` is the number of rounds.
+ * - "free" mode: `setting` is 0. There is no clock and no round limit; `finish()` ends it.
  */
 export class Match {
   readonly total: number;
@@ -27,8 +28,9 @@ export class Match {
     readonly difficulty: Difficulty = DEFAULT_DIFFICULTY,
     readonly startedAt: Date = new Date(),
   ) {
-    if (!Number.isInteger(setting) || setting < 1) {
-      throw new RangeError(`Match setting must be a positive integer, got ${setting}`);
+    const isValid = mode === "free" ? setting === 0 : Number.isInteger(setting) && setting >= 1;
+    if (!isValid) {
+      throw new RangeError(`Invalid setting for ${mode} mode: ${setting}`);
     }
     this.total = mode === "time" ? setting * SECONDS_PER_MINUTE : setting;
     this.left = this.total;
@@ -53,7 +55,7 @@ export class Match {
 
   /** 0–100: how much of the match has been used up. */
   get progressPercent(): number {
-    return ((this.total - this.left) / this.total) * 100;
+    return this.total === 0 ? 0 : ((this.total - this.left) / this.total) * 100;
   }
 
   /** Every round played so far, in order. */
@@ -86,6 +88,11 @@ export class Match {
   /** Advances the clock by one second. Only counts in time mode while playing. */
   tick(): void {
     if (this.mode === "time" && this.currentStatus === "playing") this.consumeOne();
+  }
+
+  /** Ends the match now. Free play has no end of its own, so this is how it finishes. */
+  finish(): void {
+    this.currentStatus = "finished";
   }
 
   /** Pauses or resumes a time-mode match. No-op otherwise. */

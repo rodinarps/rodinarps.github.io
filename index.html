@@ -78,6 +78,12 @@
             <span class="mode-card-description" data-i18n="mode.rounds.description">العب عددًا محددًا من الجولات.</span>
             <span class="mode-card-action"><span data-i18n="mode.rounds.action">حدد الجولات</span> <span class="flip-rtl" data-icon="arrow-up-right" aria-hidden="true"></span></span>
           </button>
+          <button class="mode-card mode-free" id="choose-free" type="button">
+            <span class="mode-icon" data-icon="infinity" aria-hidden="true"></span>
+            <span class="mode-card-title" data-i18n="mode.free.title">اللعب الحر</span>
+            <span class="mode-card-description" data-i18n="mode.free.description">بدون وقت ولا جولات محددة. العب كما تشاء.</span>
+            <span class="mode-card-action"><span data-i18n="mode.free.action">ابدأ اللعب</span> <span class="flip-rtl" data-icon="arrow-up-right" aria-hidden="true"></span></span>
+          </button>
         </div>
         <div class="home-links">
           <button class="history-link" id="open-history" type="button"><span data-icon="history" aria-hidden="true"></span> <span data-i18n="home.history">سجل المباريات</span> <span class="history-count" id="history-count">0</span></button>
@@ -145,6 +151,7 @@
         <div class="control-bar">
           <button class="control-button pause-control" id="pause-button" type="button"><span data-icon="pause" aria-hidden="true"></span> إيقاف مؤقت</button>
           <button class="control-button restart-control" id="restart-button" type="button"><span data-icon="rotate-cw" aria-hidden="true"></span> <span data-i18n="game.restart">إعادة</span></button>
+          <button class="control-button finish-control" id="finish-button" type="button" hidden><span data-icon="flag" aria-hidden="true"></span> <span data-i18n="game.finish">إنهاء</span></button>
           <button class="control-button home-control" id="home-button" type="button"><span data-icon="house" aria-hidden="true"></span> <span data-i18n="game.home">الرئيسية</span></button>
           <button class="control-button quit-control" id="quit-button" type="button"><span data-icon="x" aria-hidden="true"></span> <span data-i18n="game.quit">خروج</span></button>
         </div>
@@ -186,20 +193,22 @@
   </main>
 
   <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="dialog-title">
-    <form method="dialog" id="settings-form">
+    <form method="dialog" id="settings-form" novalidate>
       <div class="dialog-topline"><span class="dialog-icon" id="dialog-icon" data-icon="clock" aria-hidden="true"></span><span class="dialog-kicker" data-i18n="dialog.kicker">إعدادات المباراة</span></div>
       <h2 id="dialog-title">نمط الوقت</h2>
       <p class="dialog-subtitle" id="dialog-subtitle">كم من الوقت تريد أن تلعب؟</p>
-      <div class="preset-grid" id="preset-grid"></div>
-      <div class="custom-setting">
-        <label for="custom-value" data-i18n="dialog.customValue">قيمة مخصصة</label>
-        <div class="custom-input-wrap">
-          <button class="stepper-button" id="minus-value" type="button" aria-label="تقليل القيمة" data-i18n-aria-label="dialog.decrease">−</button>
-          <input id="custom-value" name="custom-value" type="number" min="1" max="60" value="10" inputmode="numeric" />
-          <button class="stepper-button" id="plus-value" type="button" aria-label="زيادة القيمة" data-i18n-aria-label="dialog.increase">+</button>
-          <span class="custom-unit" id="custom-unit">دقيقة</span>
+      <div id="count-settings">
+        <div class="preset-grid" id="preset-grid"></div>
+        <div class="custom-setting">
+          <label for="custom-value" data-i18n="dialog.customValue">قيمة مخصصة</label>
+          <div class="custom-input-wrap">
+            <button class="stepper-button" id="minus-value" type="button" aria-label="تقليل القيمة" data-i18n-aria-label="dialog.decrease">−</button>
+            <input id="custom-value" name="custom-value" type="text" value="10" inputmode="numeric" autocomplete="off" maxlength="4" aria-describedby="input-hint" aria-invalid="false" />
+            <button class="stepper-button" id="plus-value" type="button" aria-label="زيادة القيمة" data-i18n-aria-label="dialog.increase">+</button>
+            <span class="custom-unit" id="custom-unit">دقيقة</span>
+          </div>
+          <span class="input-hint" id="input-hint" aria-live="polite">اختر من 1 إلى 60 دقيقة.</span>
         </div>
-        <span class="input-hint" id="input-hint">اختر من 1 إلى 60 دقيقة.</span>
       </div>
       <div class="custom-setting">
         <span class="setting-label" id="difficulty-label" data-i18n="dialog.difficulty">الصعوبة</span>

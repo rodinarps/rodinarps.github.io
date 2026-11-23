@@ -1,5 +1,8 @@
 export type Choice = "rock" | "paper" | "scissors";
-export type Mode = "time" | "rounds";
+/** time: a clock. rounds: a fixed number of rounds. free: no limit, you decide when to stop. */
+export type Mode = "time" | "rounds" | "free";
+/** The modes that have a setting (minutes or a number of rounds). */
+export type CountedMode = Exclude<Mode, "free">;
 export type Difficulty = "easy" | "medium" | "hard" | "extreme";
 export type RoundResult = "win" | "tie" | "lose";
 export type MatchStatus = "playing" | "paused" | "finished";
@@ -22,7 +25,7 @@ export interface MatchRecord {
   /** When the match started (ISO 8601). */
   readonly startedAt: string;
   readonly mode: Mode;
-  /** Minutes (time mode) or number of rounds (rounds mode). */
+  /** Minutes (time mode), number of rounds (rounds mode), or 0 (free play has no setting). */
   readonly setting: number;
   readonly difficulty: Difficulty;
   readonly playerScore: number;

@@ -1,6 +1,7 @@
-import type { Choice, Mode } from "./types";
+import type { Choice, CountedMode, Mode } from "./types";
 
 export const CHOICES: readonly Choice[] = ["rock", "paper", "scissors"];
+export const MODES: readonly Mode[] = ["time", "rounds", "free"];
 
 export interface ModeConfig {
   readonly presets: readonly number[];
@@ -9,9 +10,10 @@ export interface ModeConfig {
   readonly max: number;
 }
 
-export const MODE_CONFIG: Record<Mode, ModeConfig> = {
+/** Limits and quick choices for the modes that take a number. Free play has none. */
+export const MODE_CONFIG: Record<CountedMode, ModeConfig> = {
   time: { presets: [5, 10, 15, 30, 60], defaultValue: 10, min: 1, max: 60 },
-  rounds: { presets: [10, 20, 30, 50], defaultValue: 10, min: 1, max: 50 },
+  rounds: { presets: [10, 30, 60, 90], defaultValue: 10, min: 1, max: 100 },
 };
 
 export const SECONDS_PER_MINUTE = 60;

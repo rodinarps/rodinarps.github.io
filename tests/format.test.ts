@@ -52,6 +52,7 @@ describe("in English", () => {
     expect(formatMatchDate(iso)).toBe("18 Nov 2026 · 14:05");
     expect(describeMatchSetup("time", 10)).toBe("Time · 10 min");
     expect(describeMatchSetup("rounds", 20)).toBe("Rounds · 20");
+    expect(describeMatchSetup("free", 0)).toBe("Free play");
   });
 
   it("summarises an import", () => {
@@ -89,6 +90,7 @@ describe("in Arabic", () => {
     expect(formatMatchDate(iso)).toBe("18 نوفمبر 2026 · 14:05");
     expect(describeMatchSetup("time", 10)).toBe("الوقت · 10 د");
     expect(describeMatchSetup("rounds", 20)).toBe("الجولات · 20");
+    expect(describeMatchSetup("free", 0)).toBe("لعب حر");
   });
 });
 

@@ -130,4 +130,13 @@ export const ar: Record<MessageKey, string> = {
   "import.duplicates": "{count} محفوظة مسبقًا",
   "import.invalid": "{count} تم تخطيها لأنها تالفة",
   "date.months": "يناير,فبراير,مارس,أبريل,مايو,يونيو,يوليو,أغسطس,سبتمبر,أكتوبر,نوفمبر,ديسمبر",
+  "mode.free.title": "اللعب الحر",
+  "mode.free.description": "بدون وقت ولا جولات محددة. العب كما تشاء.",
+  "mode.free.action": "ابدأ اللعب",
+  "mode.free.subtitle": "اختر مستوى الصعوبة. أنت من يقرر متى تتوقف.",
+  "progress.played": "الجولات الملعوبة",
+  "game.finish": "إنهاء",
+  "msg.confirmFinish": "هل تريد إنهاء الجلسة وحفظها في السجل؟",
+  "history.setupFree": "لعب حر",
+  "dialog.error.range": "أدخل عددًا صحيحًا من {min} إلى {max}.",
 };

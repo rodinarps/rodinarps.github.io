@@ -24,8 +24,9 @@ export function formatMatchDate(isoDate: string): string {
   return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()} · ${hours}:${minutes}`;
 }
 
-/** "Time · 10 min" or "Rounds · 20" */
+/** "Time · 10 min", "Rounds · 20" or "Free play" */
 export function describeMatchSetup(mode: Mode, setting: number): string {
+  if (mode === "free") return t("history.setupFree");
   return t(mode === "time" ? "history.setupTime" : "history.setupRounds", { n: setting });
 }
 

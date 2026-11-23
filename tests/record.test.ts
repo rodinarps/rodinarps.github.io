@@ -93,7 +93,8 @@ describe("isMatchRecord", () => {
     ["a very long id", { ...validRecord, id: "x".repeat(65) }],
     ["a bad date", { ...validRecord, startedAt: "yesterday-ish" }],
     ["an unknown mode", { ...validRecord, mode: "endless" }],
-    ["a zero setting", { ...validRecord, setting: 0 }],
+    ["a zero setting outside free play", { ...validRecord, setting: 0 }],
+    ["a setting in free play", { ...validRecord, mode: "free", setting: 5 }],
     ["a negative score", { ...validRecord, playerScore: -1 }],
     ["a fractional score", { ...validRecord, aiScore: 1.5 }],
     ["a missing difficulty", { ...validRecord, difficulty: undefined }],
@@ -131,5 +132,20 @@ describe("upgradeRecord", () => {
     expect(upgradeRecord({ ...validRecord, difficulty: "nightmare" })).toBeNull();
     expect(upgradeRecord(null)).toBeNull();
     expect(upgradeRecord("record")).toBeNull();
+  });
+});
+
+describe("free play records", () => {
+  it("are valid with a setting of 0", () => {
+    expect(isMatchRecord({ ...validRecord, mode: "free", setting: 0 })).toBe(true);
+  });
+
+  it("are created from a finished free play match", () => {
+    const match = new Match("free", 0, "hard", new Date("2026-11-20T10:00:00.000Z"));
+    match.playRound("paper", () => 0);
+    match.finish();
+    const record = createMatchRecord(match, "free-1");
+    expect(record).toMatchObject({ mode: "free", setting: 0, difficulty: "hard", playerScore: 1, aiScore: 0, rounds: "pr" });
+    expect(isMatchRecord(record)).toBe(true);
   });
 });

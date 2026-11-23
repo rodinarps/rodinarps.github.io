@@ -74,9 +74,9 @@ function hasValidCommonFields(record: Record<string, unknown>): boolean {
     record.id.length <= MAX_ID_LENGTH &&
     typeof record.startedAt === "string" &&
     !Number.isNaN(Date.parse(record.startedAt)) &&
-    (record.mode === "time" || record.mode === "rounds") &&
+    (record.mode === "time" || record.mode === "rounds" || record.mode === "free") &&
     isNonNegativeInteger(record.setting) &&
-    record.setting >= 1 &&
+    (record.mode === "free" ? record.setting === 0 : record.setting >= 1) &&
     isNonNegativeInteger(record.playerScore) &&
     typeof record.rounds === "string" &&
     record.rounds.length <= MAX_ROUNDS_CHARS &&

@@ -128,6 +128,15 @@ export const en = {
   "import.duplicates": "{count} already saved",
   "import.invalid": "{count} skipped as damaged",
   "date.months": "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec",
+  "mode.free.title": "Free Play",
+  "mode.free.description": "No clock, no limit. Play as long as you like.",
+  "mode.free.action": "START PLAYING",
+  "mode.free.subtitle": "Choose a difficulty. You decide when to stop.",
+  "progress.played": "ROUNDS PLAYED",
+  "game.finish": "Finish",
+  "msg.confirmFinish": "End this session and save it to your history?",
+  "history.setupFree": "Free play",
+  "dialog.error.range": "Enter a whole number from {min} to {max}.",
 } as const;
 
 export type MessageKey = keyof typeof en;

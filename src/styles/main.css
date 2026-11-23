@@ -203,7 +203,7 @@ h1 { margin: 0; font: 700 clamp(31px, 5vw, 48px)/1.08 var(--font-display); lette
 }
 .mode-heading-line, .choose-line { height: 1px; width: min(11vw, 74px); background: linear-gradient(90deg, transparent, rgba(169, 155, 201, .35)); }
 .mode-heading-line:last-child, .choose-line:last-child { transform: rotate(180deg); }
-.mode-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; width: min(100%, 650px); margin: 19px auto 0; }
+.mode-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px; width: min(100%, 900px); margin: 19px auto 0; }
 .mode-card {
   position: relative;
   display: flex;
@@ -221,6 +221,7 @@ h1 { margin: 0; font: 700 clamp(31px, 5vw, 48px)/1.08 var(--font-display); lette
 .mode-card:hover { transform: translateY(-4px); background: rgba(53, 43, 96, .72); box-shadow: 0 15px 30px rgba(0, 0, 0, .16); }
 .mode-time:hover { border-color: rgba(139, 92, 246, .65); }
 .mode-rounds:hover { border-color: rgba(249, 115, 22, .65); }
+.mode-free:hover { border-color: rgba(34, 197, 94, .65); }
 .mode-icon {
   display: grid;
   width: 41px;
@@ -233,10 +234,12 @@ h1 { margin: 0; font: 700 clamp(31px, 5vw, 48px)/1.08 var(--font-display); lette
   font: 600 26px var(--font-display);
 }
 .mode-rounds .mode-icon { color: var(--orange-light); background: rgba(249, 115, 22, .15); }
+.mode-free .mode-icon { color: var(--win); background: rgba(34, 197, 94, .14); }
 .mode-card-title { font: 700 17px var(--font-display); }
 .mode-card-description { margin-top: 5px; color: var(--muted); font-size: 11px; }
 .mode-card-action { display: flex; width: 100%; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 14px; color: var(--purple-light); font-size: 9px; font-weight: 800; letter-spacing: 1.4px; }
 .mode-rounds .mode-card-action { color: var(--orange-light); }
+.mode-free .mode-card-action { color: var(--win); }
 .mode-card-action [data-icon] { font-size: 15px; }
 .home-footnote { margin: 22px 0 0; color: #81759f; text-align: center; font-size: 10px; }
 .home-footnote [data-icon] { margin-inline-end: 4px; color: var(--orange-light); }
@@ -392,6 +395,7 @@ h1 { margin: 0; font: 700 clamp(31px, 5vw, 48px)/1.08 var(--font-display); lette
 .preset-button span { color: var(--muted); font-size: 8px; }
 .preset-button.selected { border-color: var(--purple); color: white; background: rgba(139, 92, 246, .25); box-shadow: 0 0 0 1px rgba(139, 92, 246, .15); }
 .settings-dialog[data-mode="rounds"] .preset-button.selected { border-color: var(--orange); background: rgba(249, 115, 22, .18); }
+.settings-dialog[data-mode="free"] .dialog-icon { color: var(--win); background: rgba(34, 197, 94, .14); }
 .custom-setting { margin-top: 20px; }
 .custom-setting label, .setting-label { display: block; margin-bottom: 9px; color: #988bb7; font-size: 8px; font-weight: 800; letter-spacing: 1.7px; }
 .custom-input-wrap { display: flex; direction: ltr; align-items: center; gap: 9px; }
@@ -406,6 +410,7 @@ h1 { margin: 0; font: 700 clamp(31px, 5vw, 48px)/1.08 var(--font-display); lette
 .cancel-button { flex: 1; border: 1px solid rgba(196, 181, 253, .2); color: #c0b7d3; background: transparent; }
 .start-button { flex: 1.5; border: 0; color: white; background: linear-gradient(110deg, #8b5cf6, #6835cb); box-shadow: 0 7px 18px rgba(124, 58, 237, .23); }
 .settings-dialog[data-mode="rounds"] .start-button { background: linear-gradient(110deg, #f97316, #c64e0c); box-shadow: 0 7px 18px rgba(249, 115, 22, .2); }
+.settings-dialog[data-mode="free"] .start-button { background: linear-gradient(110deg, #22c55e, #15803d); box-shadow: 0 7px 18px rgba(34, 197, 94, .2); }
 .start-button [data-icon] { margin-inline-start: 7px; }
 .toast { position: fixed; z-index: 5; inset-inline-end: 20px; bottom: 20px; max-width: min(360px, calc(100vw - 40px)); padding: 12px 16px; transform: translateY(15px); border: 1px solid rgba(196, 181, 253, .2); border-radius: 12px; color: #eee9ff; background: #2a2250; box-shadow: 0 14px 35px rgba(0, 0, 0, .3); font-size: 12px; opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; }
 .toast.visible { transform: translateY(0); opacity: 1; }
@@ -429,6 +434,7 @@ h1 { margin: 0; font: 700 clamp(31px, 5vw, 48px)/1.08 var(--font-display); lette
 .difficulty-button:hover { transform: translateY(-2px); }
 .difficulty-button.selected { border-color: var(--purple); color: white; background: rgba(139, 92, 246, .25); box-shadow: 0 0 0 1px rgba(139, 92, 246, .15); }
 .settings-dialog[data-mode="rounds"] .difficulty-button.selected { border-color: var(--orange); background: rgba(249, 115, 22, .18); }
+.settings-dialog[data-mode="free"] .difficulty-button.selected { border-color: var(--win); background: rgba(34, 197, 94, .16); }
 
 @media (max-width: 640px) {
   .app-shell { width: min(100% - 24px, 540px); padding-top: 16px; }
@@ -523,3 +529,28 @@ body[data-screen="game"] .hero-copy, body[data-screen="history"] .hero-copy { di
   html[lang="ar"] .control-button { font-size: 10px; padding-inline: 6px; }
   html[lang="ar"] .control-button [data-icon], html[lang="ar"] .control-button .btn-icon { margin-inline-end: 3px; font-size: 11px; }
 }
+
+/* ---------- Free play, and checking the number that was typed ---------- */
+.finish-control { color: var(--win); }
+#custom-value[aria-invalid="true"] { border-color: var(--lose); box-shadow: 0 0 0 2px rgba(244, 63, 94, .22); }
+.input-hint.error { color: #ff8ea1; font-weight: 700; }
+.dialog-button:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+
+/* Below this width the three mode cards no longer fit in a row: two on top, free play as a wide row underneath. */
+@media (max-width: 760px) {
+  .mode-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mode-free {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "icon title action" "icon description action";
+    column-gap: 12px;
+    align-items: center;
+    min-height: 0;
+  }
+  .mode-free .mode-icon { grid-area: icon; margin-bottom: 0; }
+  .mode-free .mode-card-title { grid-area: title; }
+  .mode-free .mode-card-description { grid-area: description; margin-top: 2px; }
+  .mode-free .mode-card-action { grid-area: action; width: auto; margin-top: 0; padding-top: 0; gap: 8px; }
+}
+.fighter-level { display: block; margin-top: 3px; color: var(--purple-light); font-weight: 800; }

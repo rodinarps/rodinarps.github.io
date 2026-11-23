@@ -29,6 +29,8 @@ const ICON_NAMES = [
   "upload",
   "trash-2",
   "arrow-left",
+  "infinity",
+  "flag",
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];
@@ -36,6 +38,7 @@ export type IconName = (typeof ICON_NAMES)[number];
 export const MODE_ICON: Record<Mode, IconName> = {
   time: "clock",
   rounds: "rows-3",
+  free: "infinity",
 };
 
 const rawIcons = import.meta.glob<string>("../assets/icons/**/*.svg", {

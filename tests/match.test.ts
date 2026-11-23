@@ -100,4 +100,37 @@ describe("Match history of rounds", () => {
     expect(new Match("rounds", 3).difficulty).toBe("medium");
     expect(new Match("rounds", 3, "extreme").difficulty).toBe("extreme");
   });
+
+  it("does not accept a setting that makes no sense for its mode", () => {
+    expect(() => new Match("free", 5)).toThrow(RangeError);
+    expect(() => new Match("time", 0)).toThrow(RangeError);
+  });
+});
+
+describe("Match (free play)", () => {
+  it("has no clock and no round limit, so it never ends by itself", () => {
+    const match = new Match("free", 0);
+    for (let round = 0; round < 500; round += 1) expect(match.playRound("rock", alwaysZero)).not.toBeNull();
+    for (let second = 0; second < 5_000; second += 1) match.tick();
+
+    expect(match.status).toBe("playing");
+    expect(match.rounds).toHaveLength(500);
+    expect(match.progressPercent).toBe(0);
+  });
+
+  it("cannot be paused", () => {
+    const match = new Match("free", 0);
+    match.togglePause();
+    expect(match.status).toBe("playing");
+  });
+
+  it("ends when the player finishes it, and then accepts no more rounds", () => {
+    const match = new Match("free", 0);
+    match.playRound("paper", alwaysZero);
+    match.finish();
+
+    expect(match.status).toBe("finished");
+    expect(match.playRound("rock", alwaysZero)).toBeNull();
+    expect(match.playerScore).toBe(1);
+  });
 });

@@ -4,7 +4,7 @@ import { isChoice } from "../core/rules";
 import type { Choice, Difficulty, Mode } from "../core/types";
 import { t } from "../i18n";
 import { DelayedAction } from "../utils/timers";
-import { requireElement, requireElements } from "./dom";
+import { make, requireElement, requireElements } from "./dom";
 import { formatTimeLeft } from "./format";
 import { createIcon, type IconName } from "./icons";
 import type { Banner } from "./messages";
@@ -23,12 +23,14 @@ type Screen = "home" | "game" | "history";
 const MODE_BUTTON_SELECTOR: Record<Mode, string> = {
   time: "#choose-time",
   rounds: "#choose-rounds",
+  free: "#choose-free",
 };
 
 export interface ViewHandlers {
   onModeSelected(mode: Mode): void;
   onChoice(choice: Choice): void;
   onTogglePause(): void;
+  onFinish(): void;
   onRestart(): void;
   onHome(): void;
   onQuit(): void;
@@ -59,6 +61,7 @@ export class GameView {
   private readonly progressTrack = requireElement("#progress-track");
 
   private readonly pauseButton = requireElement<HTMLButtonElement>("#pause-button");
+  private readonly finishButton = requireElement<HTMLButtonElement>("#finish-button");
   private readonly toast = requireElement("#toast");
   private readonly toastTimer = new DelayedAction();
 
@@ -81,6 +84,7 @@ export class GameView {
     }
 
     this.pauseButton.addEventListener("click", handlers.onTogglePause);
+    this.finishButton.addEventListener("click", handlers.onFinish);
     requireElement("#restart-button").addEventListener("click", handlers.onRestart);
     requireElement("#home-button").addEventListener("click", handlers.onHome);
     requireElement("#quit-button").addEventListener("click", handlers.onQuit);
@@ -165,22 +169,37 @@ export class GameView {
   // Progress and pause
 
   renderProgress(match: Match): void {
-    const isTimeMode = match.mode === "time";
     const percent = Math.min(100, Math.max(0, match.progressPercent));
 
-    this.progressLabel.textContent = t(isTimeMode ? "progress.time" : "progress.rounds");
-    this.progressValue.textContent = isTimeMode
-      ? formatTimeLeft(match.remaining)
-      : t("progress.roundsValue", { left: match.remaining, total: match.total });
-    this.progressValue.style.color = isTimeMode
-      ? match.remaining > LOW_TIME_THRESHOLD_SECONDS
-        ? COLOR.win
-        : COLOR.lose
-      : COLOR.accent;
+    // Free play has no limit, so instead of a bar it just counts the rounds played.
+    this.progressTrack.hidden = match.mode === "free";
+
+    switch (match.mode) {
+      case "time":
+        this.progressLabel.textContent = t("progress.time");
+        this.progressValue.textContent = formatTimeLeft(match.remaining);
+        this.progressValue.style.color = match.remaining > LOW_TIME_THRESHOLD_SECONDS ? COLOR.win : COLOR.lose;
+        break;
+      case "rounds":
+        this.progressLabel.textContent = t("progress.rounds");
+        this.progressValue.textContent = t("progress.roundsValue", { left: match.remaining, total: match.total });
+        this.progressValue.style.color = COLOR.accent;
+        break;
+      case "free":
+        this.progressLabel.textContent = t("progress.played");
+        this.progressValue.textContent = String(match.rounds.length);
+        this.progressValue.style.color = COLOR.win;
+        break;
+    }
 
     this.progressFill.style.width = `${percent}%`;
     this.progressFill.style.background = progressFillColor(percent);
     this.progressTrack.setAttribute("aria-valuenow", String(Math.round(percent)));
+  }
+
+  /** The Finish button only exists in free play, which has no end of its own. */
+  setFinishVisible(visible: boolean): void {
+    this.finishButton.hidden = !visible;
   }
 
   setPauseVisible(visible: boolean): void {
@@ -208,9 +227,8 @@ export class GameView {
   }
 
   private renderAiName(): void {
-    this.aiName.textContent = this.difficulty
-      ? `${t("arena.ai")} · ${t(`difficulty.${this.difficulty}`)}`
-      : t("arena.ai");
+    const level = this.difficulty ? [make("span", "fighter-level", t(`difficulty.${this.difficulty}`))] : [];
+    this.aiName.replaceChildren(t("arena.ai"), ...level);
   }
 
   private relabelChoices(): void {
