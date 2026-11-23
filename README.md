@@ -6,7 +6,8 @@ Built with TypeScript, Vite and plain CSS — no framework.
 ## Features
 
 - **Time Mode** – 1–60 minutes (presets 5, 10, 15, 30, 60) with pause/resume.
-- **Rounds Mode** – 1–50 rounds (presets 10, 20, 30, 50).
+- **Rounds Mode** – 1–100 rounds (presets 10, 30, 60, 90).
+- **Free Play** – no clock and no round limit: play as long as you like, then press Finish to end the session and save it.
 - **Four difficulty levels** – Easy, Medium, Hard and Extreme (see [Difficulty levels](#difficulty-levels)).
 - **Arabic and English** – Arabic by default with a right-to-left layout, English one click away (see [Languages](#languages)).
 - **Match history** – every finished match is saved in your browser (see [Saved history](#saved-history)): totals, win rate, your most played moves, and a list of recent matches.
@@ -39,6 +40,13 @@ Medium is the original algorithm, so a player who works out how it behaves can o
 The levels are plain data in `src/core/difficulty.ts` and the guessing methods are in `src/core/predictors.ts`;
 `tests/difficulty-simulation.test.ts` checks their behaviour.
 
+## Settings are checked, never changed
+
+The number typed for minutes or rounds is checked as you type (`validateSetting` in `src/core/settings.ts`): only a whole number
+inside the mode's limits is accepted (`MODE_CONFIG` in `src/core/constants.ts`: 1–60 minutes, 1–100 rounds).
+Anything else shows an error and keeps **Start** disabled; the value is never silently lowered to the limit.
+Arabic-Indic digits (٣٠) and Persian digits (۳۰) are understood.
+
 ## Languages
 
 Arabic is the default and English is one click away. Your choice (and your last difficulty) is remembered in this
@@ -51,6 +59,8 @@ browser under `rodinarps:preferences`.
 - **Right to left:** `<html dir>` follows the language and the CSS uses logical properties (`margin-inline-start`, ...),
   with arrows mirrored.
 - **Numbers** use Western digits in both languages, so they match the score and timer font.
+- **No flash on load:** `public/early-language.js` runs before the first paint; if English was saved it switches the page
+  direction at once and keeps the page hidden until `main.ts` has translated it. Arabic visitors are never hidden.
 - **To add a language:** copy `en.ts`, add it to `LANGUAGES` and `DIRECTION` in `src/i18n/index.ts`, and bundle a font that covers its letters.
 
 ## Development
@@ -76,6 +86,7 @@ src/
 │   ├── types.ts          # Choice, Mode, Difficulty, MatchRecord, ...
 │   ├── constants.ts      # mode settings (presets, min/max), UI timing, limits
 │   ├── rules.ts          # who beats whom
+│   ├── settings.ts       # checks the minutes / rounds typed in the settings dialog
 │   ├── difficulty.ts     # the four levels and what each one does
 │   ├── predictors.ts     # ways of guessing your next move
 │   ├── opponent.ts       # the AI's move selection
@@ -101,7 +112,7 @@ src/
 ├── assets/fonts/         # DM Sans + Space Grotesk (latin) and Cairo (Arabic), woff2
 ├── assets/icons/         # SVG icons: Twemoji art + Lucide UI icons
 └── styles/main.css
-public/                   # favicon.svg + license texts, copied as-is into the build
+public/                   # favicon.svg, early-language.js and license texts, copied as-is into the build
 tests/                    # Vitest unit tests + guards against external requests and system glyphs
 THIRD_PARTY_NOTICES.md    # fonts and icons: authors and licenses
 ```
@@ -111,7 +122,7 @@ The rules in `core/` never touch the DOM or timers, so they can be tested withou
 
 ## Saved history
 
-Every **finished** match is saved automatically (matches you restart or leave early are not):
+Every **finished** match with at least one round is saved automatically (matches you restart or leave early are not; free play is saved when you press Finish):
 when it started, the mode, setting and difficulty, the final score, and every round (your move and the AI's).
 
 - **Where it lives:** in your browser's `localStorage`, under the key `rodinarps:history`. It never leaves your device;
@@ -122,10 +133,21 @@ when it started, the mode, setting and difficulty, the final score, and every ro
 - **Backups:** the history screen has **Export backup** (a `.json` file you keep) and **Import backup**
   (merges a backup into the current history and skips matches that are already saved). Export before you clear browser data.
 - **Limits:** the newest 500 matches are kept. If the browser blocks or fills its storage, the game still works; it just can't save.
+- **Free play** is saved with `mode: "free"` and `setting: 0`.
 - **Older data:** matches saved before difficulty levels existed (format version 1, with `cpuScore`) are read as Medium matches
   against the AI and saved in the current format (version 2) the next time something is added. Old backup files still import.
 - **Changing the saved format:** saved data is validated when read (`isMatchRecord`, `upgradeRecord`). If you change the shape of
   `MatchRecord`, bump `RECORD_VERSION` in `src/core/record.ts` and convert old data instead of dropping it.
+
+## Stable layout
+
+The page is built not to jump around:
+
+- Fonts are preloaded and the layout is checked in a real browser, so text doesn't re-flow when a font arrives.
+- `scrollbar-gutter: stable` keeps room for the scrollbar, and the page returns to the top when you change screen.
+- The big title is shown only on the menu, so the game screen fits on one screen on normal displays
+  (see the last rules in `src/styles/main.css`).
+- `min-height` uses `100dvh`, so phone browsers' address bars don't make the page bounce.
 
 ## Self-contained by design
 
