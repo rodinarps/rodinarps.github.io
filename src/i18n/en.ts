@@ -137,6 +137,7 @@ export const en = {
   "msg.confirmFinish": "End this session and save it to your history?",
   "history.setupFree": "Free play",
   "dialog.error.range": "Enter a whole number from {min} to {max}.",
+  "home.install": "Install app",
 } as const;
 
 export type MessageKey = keyof typeof en;

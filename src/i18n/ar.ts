@@ -139,4 +139,5 @@ export const ar: Record<MessageKey, string> = {
   "msg.confirmFinish": "هل تريد إنهاء الجلسة وحفظها في السجل؟",
   "history.setupFree": "لعب حر",
   "dialog.error.range": "أدخل عددًا صحيحًا من {min} إلى {max}.",
+  "home.install": "تثبيت التطبيق",
 };

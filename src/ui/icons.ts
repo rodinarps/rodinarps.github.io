@@ -31,6 +31,7 @@ const ICON_NAMES = [
   "arrow-left",
   "infinity",
   "flag",
+  "smartphone",
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];

@@ -1,7 +1,9 @@
 import { App } from "./app";
+import { registerServiceWorker, setUpInstallButton } from "./pwa";
 import { getBrowserStorage } from "./storage/browserStorage";
 import { HistoryStore } from "./storage/historyStore";
 import { PreferencesStore } from "./storage/preferences";
+import { requireElement } from "./ui/dom";
 import { HistoryView } from "./ui/historyView";
 import { hydrateIcons } from "./ui/icons";
 import { applyLanguage } from "./ui/language";
@@ -26,3 +28,6 @@ new App(
 
 // The page is translated and drawn: show it (see public/early-language.js).
 document.documentElement.removeAttribute("data-language-pending");
+
+setUpInstallButton(requireElement<HTMLButtonElement>("#install-button"));
+registerServiceWorker();

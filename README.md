@@ -7,6 +7,7 @@ Built with TypeScript, Vite and plain CSS — no framework.
 
 - **Time Mode** – 1–60 minutes (presets 5, 10, 15, 30, 60) with pause/resume.
 - **Rounds Mode** – 1–100 rounds (presets 10, 30, 60, 90).
+- **Works offline and installs like an app** (see [Offline and installable](#offline-and-installable)).
 - **Free Play** – no clock and no round limit: play as long as you like, then press Finish to end the session and save it.
 - **Four difficulty levels** – Easy, Medium, Hard and Extreme (see [Difficulty levels](#difficulty-levels)).
 - **Arabic and English** – Arabic by default with a right-to-left layout, English one click away (see [Languages](#languages)).
@@ -108,11 +109,14 @@ src/
 │   ├── format.ts         # small formatting helpers
 │   ├── download.ts       # saves a text file through the browser's download
 │   └── dom.ts            # querySelector that fails loudly, element builder
+├── pwa.ts                # registers the service worker, shows the "Install app" button
+├── pwa/service-worker.js # the service worker template (filled in at build time)
 ├── utils/timers.ts       # tiny wrappers around setInterval / setTimeout
 ├── assets/fonts/         # DM Sans + Space Grotesk (latin) and Cairo (Arabic), woff2
 ├── assets/icons/         # SVG icons: Twemoji art + Lucide UI icons
 └── styles/main.css
-public/                   # favicon.svg, early-language.js and license texts, copied as-is into the build
+build/                    # build-time plugin that writes dist/sw.js (file list + version)
+public/                   # favicon.svg, manifest, app icons, early-language.js and license texts, copied as-is into the build
 tests/                    # Vitest unit tests + guards against external requests and system glyphs
 THIRD_PARTY_NOTICES.md    # fonts and icons: authors and licenses
 ```
@@ -139,15 +143,26 @@ when it started, the mode, setting and difficulty, the final score, and every ro
 - **Changing the saved format:** saved data is validated when read (`isMatchRecord`, `upgradeRecord`). If you change the shape of
   `MatchRecord`, bump `RECORD_VERSION` in `src/core/record.ts` and convert old data instead of dropping it.
 
-## Stable layout
+## Offline and installable
 
-The page is built not to jump around:
+After the first visit the whole game is stored on the device, so it opens and plays **without internet**, and it can be
+installed like an app. It is a Progressive Web App built by hand, with no extra libraries.
 
-- Fonts are preloaded and the layout is checked in a real browser, so text doesn't re-flow when a font arrives.
-- `scrollbar-gutter: stable` keeps room for the scrollbar, and the page returns to the top when you change screen.
-- The big title is shown only on the menu, so the game screen fits on one screen on normal displays
-  (see the last rules in `src/styles/main.css`).
-- `min-height` uses `100dvh`, so phone browsers' address bars don't make the page bounce.
+- **How it works:** `src/pwa/service-worker.js` keeps every file of the game in a cache and answers from it.
+  After each build `build/precache-plugin.ts` writes `dist/sw.js` with the list of files and a version made from their contents,
+  so every release gets its own cache. The worker is only registered in the production build (never under `npm run dev`).
+- **Installing:** Chrome, Edge and Android show an **Install app** button on the menu (or use the browser's own install option).
+  On iPhone and iPad use Safari's **Share → Add to Home Screen**.
+- **Updates:** a new release is downloaded in the background when someone visits, and is shown the next time they open the game
+  (reload twice to see it right away). The old cache is deleted automatically.
+- **Saved data:** history and preferences live in `localStorage`, so they keep working offline. An app added to the iPhone
+  Home Screen may keep its own separate storage; use **Export backup / Import backup** to move a history across.
+- **Testing it:** run `npm run build && npm run preview`, open the page, then in the browser's developer tools
+  (Application → Service Workers) tick **Offline** and reload.
+- **Icons:** `public/icons/` holds the 192px, 512px, maskable and Apple icons, made from `public/favicon.svg` on the game's purple
+  background. Keep the hand inside the middle ~55% of the maskable one, because Android crops it to different shapes.
+- **Turning it off:** removing the registration is not enough, because browsers keep an installed worker. Ship a `sw.js` that
+  calls `registration.unregister()` first.
 
 ## Self-contained by design
 

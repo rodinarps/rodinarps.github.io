@@ -8,6 +8,11 @@
   <title>RodinaRPS · حجر ورقة مقص</title>
   <script src="early-language.js"></script>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="RodinaRPS" />
   <link rel="preload" href="/src/assets/fonts/dm-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/src/assets/fonts/space-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/src/assets/fonts/cairo-arabic-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
@@ -87,6 +92,7 @@
         </div>
         <div class="home-links">
           <button class="history-link" id="open-history" type="button"><span data-icon="history" aria-hidden="true"></span> <span data-i18n="home.history">سجل المباريات</span> <span class="history-count" id="history-count">0</span></button>
+          <button class="history-link install-link" id="install-button" type="button" hidden><span data-icon="smartphone" aria-hidden="true"></span> <span data-i18n="home.install">تثبيت التطبيق</span></button>
         </div>
         <p class="home-footnote"><span data-icon="sparkle" aria-hidden="true"></span> <span data-i18n="home.footnote">الذكاء الاصطناعي يتعلم من حركاتك السابقة.</span></p>
       </section>

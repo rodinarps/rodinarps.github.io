@@ -3,7 +3,7 @@ import indexHtml from "../index.html?raw";
 
 // Raw text of every source file that could pull something from another origin
 // or draw a character with a font the project does not ship.
-const sources = import.meta.glob<string>("../src/**/*.{css,ts}", {
+const sources = import.meta.glob<string>("../src/**/*.{css,ts,js}", {
   query: "?raw",
   import: "default",
   eager: true,

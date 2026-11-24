@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config";
+import { precacheServiceWorker } from "./build/precache-plugin";
 
 /**
  * The game is fully self-contained: scripts, styles and fonts all come from the
@@ -11,6 +12,7 @@ const CONTENT_SECURITY_POLICY = [
   "script-src 'self'",
   "style-src 'self'",
   "font-src 'self'",
+  "manifest-src 'self'",
   "img-src 'self'",
   "base-uri 'none'",
 ].join("; ");
@@ -20,6 +22,7 @@ export default defineConfig({
   // as well as on a custom domain, without hard-coding the repository name.
   base: "./",
   plugins: [
+    precacheServiceWorker(),
     {
       name: "inject-content-security-policy",
       apply: "build",

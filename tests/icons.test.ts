@@ -5,7 +5,7 @@ import { iconMarkup, isIconName, type IconName } from "../src/ui/icons";
 const ALL_ICONS: IconName[] = [
   "rock", "paper", "scissors", "party", "skull", "handshake", "trophy",
   "clock", "rows-3", "arrow-up-right", "arrow-right", "pause", "play", "rotate-cw", "house", "x", "sparkle",
-  "history", "download", "upload", "trash-2", "arrow-left", "infinity", "flag",
+  "history", "download", "upload", "trash-2", "arrow-left", "infinity", "flag", "smartphone",
 ];
 
 describe("icons", () => {
